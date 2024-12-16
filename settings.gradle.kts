@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "lightning"
+rootProject.name = "Lightning"
 include(":app")

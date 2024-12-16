@@ -12,16 +12,26 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Lightning"
         tools:targetApi="31">
+
+        <!-- MainActivity 선언 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:label="@string/app_name"
             android:theme="@style/Theme.Lightning">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- AddList 선언 -->
+        <activity
+            android:name=".AddList"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Lightning" />
+
     </application>
 
 </manifest>
