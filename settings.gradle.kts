@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Lightning"
 include(":app")
- 
