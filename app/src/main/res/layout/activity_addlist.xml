@@ -6,15 +6,216 @@
     android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/txtAlarm"
-                android:text="알림설정"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        android:gravity="center">
 
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center">
+                <TextView
+                    android:id="@+id/cancle"
+                    android:layout_width="30dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center|left"
+                    android:text="취소"
+                    android:textColor="#000000"
+                    android:textSize="14dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/nowAlarm"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="현재알림"
+                android:textColor="#000000"
+                android:textSize="18dp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right"
+                >
+                <Button
+                    android:layout_width="60dp"
+                    android:layout_height="30dp"
+                    android:text="저장"
+                    android:textSize="14dp"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_radius"
+                    style="?android:attr/borderlessButtonStyle"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
 
     <TimePicker
         android:id="@+id/timePicker"
-        android:layout_gravity="center"
-        android:timePickerMode="spinner" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:timePickerMode="spinner"
+        />
 
+    <!-- 번개알림 지정 탭 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        android:gravity="center">
 
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:gravity="center|left"
+                android:text="번개알림 지정"
+                android:textColor="#000000"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/lightning_des_btn"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:text="\?"
+                android:background="@drawable/circle_button"
+                style="?android:attr/borderlessButtonStyle"
+                />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right"
+                >
+                <Switch
+                    android:id="@+id/lightning_switch_btn"
+                    android:layout_width="56dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 리마인드 지정 탭 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        android:gravity="center">
+
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
+                android:gravity="center|left"
+                android:text="리마인드"
+                android:textColor="#000000"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/remind_des_btn"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:text="\?"
+                android:background="@drawable/circle_button"
+                style="?android:attr/borderlessButtonStyle"
+                />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right"
+                >
+                <Switch
+                    android:id="@+id/remind_switch_btn"
+                    android:layout_width="56dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 내용 지정 탭 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        android:gravity="center">
+
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:gravity="center|left"
+                android:text="내용"
+                android:textColor="#000000"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/details_des_btn"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:text="\?"
+                android:background="@drawable/circle_button"
+                style="?android:attr/borderlessButtonStyle"
+                />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right"
+                >
+                <Switch
+                    android:id="@+id/details_switch_btn"
+                    android:layout_width="56dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:layout_width="350dp"
+            android:layout_height="70dp"
+            android:background="@drawable/edittext_radius"/>
+    </LinearLayout>
 </LinearLayout>

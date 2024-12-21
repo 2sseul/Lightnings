@@ -2,6 +2,7 @@ package com.example.lightning
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import android.widget.TimePicker
 import androidx.activity.ComponentActivity
@@ -15,10 +16,9 @@ class AddList : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_addlist)
 
-        //취소 버튼
-        val btnCancle : TextView = findViewById(R.id.cancle)
+        val cancleBtn: TextView = findViewById(R.id.cancle)
 
-        btnCancle.setOnClickListener {
+        cancleBtn.setOnClickListener{
             val intent = Intent(this@AddList, MainActivity::class.java)
             startActivity(intent)
         }
