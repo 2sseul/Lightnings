@@ -16,6 +16,7 @@ class AddList : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_addlist)
 
+        // 뒤로 가기 버튼
         val cancleBtn: TextView = findViewById(R.id.cancle)
 
         cancleBtn.setOnClickListener{
