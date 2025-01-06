@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "645847144314",
+    "project_id": "lightning-app-17dc9",
+    "storage_bucket": "lightning-app-17dc9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645847144314:android:e8ee794e334e602bc428c3",
+        "android_client_info": {
+          "package_name": "com.example.lightning"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1az2n4MNwfhWn_hAF6Kj2vaXdwi5AMSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

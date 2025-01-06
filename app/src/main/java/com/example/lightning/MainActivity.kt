@@ -22,6 +22,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
         val btnAddList : ImageView = findViewById(R.id.btnAdd)
 
         btnAddList.setOnClickListener {

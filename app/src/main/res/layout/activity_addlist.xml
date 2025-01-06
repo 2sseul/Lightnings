@@ -62,14 +62,13 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 번개알림 지정 탭 -->
     <TimePicker
         android:id="@+id/timePicker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:timePickerMode="spinner"
-        />
+        android:timePickerMode="spinner" />
 
-    <!-- 번개알림 지정 탭 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="32dp"
