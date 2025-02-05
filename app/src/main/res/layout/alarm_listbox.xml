@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="10dp">
+
+    <LinearLayout
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/alarm_list_radius"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- 번개 아이콘 -->
+        <ImageView
+            android:id="@+id/lightning_icon"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="8dp"
+            android:src="@drawable/ok_thunder" />
+
+        <!-- 텍스트 레이아웃 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- 시간과 리마인드 (가로 배치) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 시간 -->
+                <TextView
+                    android:id="@+id/time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="23dp"
+                    android:text="8시"
+                    android:textSize="14dp"
+                    android:layout_marginRight="8dp" />
+
+                <!-- 분 -->
+                <TextView
+                    android:id="@+id/min"
+                    android:layout_width="wrap_content"
+                    android:layout_height="23dp"
+                    android:text="8분"
+                    android:textSize="14dp"
+                    android:layout_marginRight="8dp" />
+
+                <!-- 리마인드 -->
+                <TextView
+                    android:id="@+id/remind_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="23dp"
+                    android:text="리마인드"
+                    android:textStyle="bold"
+                    android:textColor="#196EFF"
+                    android:background="@drawable/remind_radius"
+                    android:padding="4dp"
+                    android:textSize="10dp"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <!-- 알림 제목 -->
+            <TextView
+                android:id="@+id/reminder_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="물 마시기"
+                android:textSize="19dp"
+                android:textColor="#000000"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 북마크 아이콘 -->
+        <ImageView
+            android:id="@+id/bookmark_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/list_no_bookmark" />
+    </LinearLayout>
+</LinearLayout>
