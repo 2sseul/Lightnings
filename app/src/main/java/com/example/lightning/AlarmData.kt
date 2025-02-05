@@ -15,5 +15,6 @@ data class AlarmData(
     @get:PropertyName("detailsText") @set:PropertyName("detailsText") var detailsText: String = "",
     @get:PropertyName("isBookmarked") @set:PropertyName("isBookmarked") var isBookmarked: Boolean = false,
     @get:PropertyName("isActive") @set:PropertyName("isActive") var isActive: Boolean = true,
-    @get:PropertyName("alarmTimeMillis") @set:PropertyName("alarmTimeMillis") var alarmTimeMillis: Long = 0L // ✅ 새 필드 추가
+    @get:PropertyName("alarmTimeMillis") @set:PropertyName("alarmTimeMillis") var alarmTimeMillis: Long = 0L,
+    @get:PropertyName("isDeleted") @set:PropertyName("isDeleted") var isDeleted: Boolean = false
 )
