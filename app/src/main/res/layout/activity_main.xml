@@ -7,19 +7,17 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- 상단 현재 알림 제목 -->
+    <!-- 상단 현재 알림 제목 및 일괄 정지 영역 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="32dp"
         android:layout_marginTop="30dp"
         android:gravity="center"
         android:orientation="horizontal">
-
         <LinearLayout
             android:layout_width="350dp"
             android:layout_height="match_parent"
             android:layout_gravity="center">
-
             <TextView
                 android:id="@+id/nowAlarm"
                 android:layout_width="0dp"
@@ -29,8 +27,7 @@
                 android:text="현재알림"
                 android:textColor="#000000"
                 android:textSize="18dp"
-                android:textStyle="bold" />
-
+                android:textStyle="bold"/>
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -41,34 +38,28 @@
                     android:layout_height="20dp"
                     android:text="일괄정지"
                     android:textSize="14dp"
-                    android:layout_gravity="center" />
+                    android:layout_gravity="center"/>
                 <Switch
                     android:id="@+id/switch_all_stop"
                     android:layout_width="56dp"
                     android:layout_height="32dp"
-                    android:layout_gravity="center" />
+                    android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 현재 알림 목록 -->
+    <!-- 현재 알림 목록 영역 (RecyclerView) -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginTop="20dp"
-        android:layout_weight="1">
-
-        <ScrollView
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="20dp">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/currentAlarmRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:id="@+id/currentAlarmContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
-
+            android:layout_height="match_parent"
+            android:nestedScrollingEnabled="true"
+            android:scrollbars="vertical"/>
         <TextView
             android:id="@+id/noCurrentAlarmsText"
             android:layout_width="match_parent"
@@ -80,18 +71,16 @@
             android:visibility="gone"/>
     </FrameLayout>
 
-    <!-- 하단 전체 알림 제목 -->
+    <!-- 하단 전체 알림 제목 영역 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal">
-
         <LinearLayout
             android:layout_width="350dp"
             android:layout_height="match_parent"
             android:layout_gravity="center">
-
             <TextView
                 android:id="@+id/allAlarm"
                 android:layout_width="0dp"
@@ -102,28 +91,22 @@
                 android:text="전체알림"
                 android:textColor="#000000"
                 android:textSize="18dp"
-                android:textStyle="bold" />
+                android:textStyle="bold"/>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 전체 알림 목록 -->
+    <!-- 전체 알림 목록 영역 (RecyclerView) -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="20dp">
-
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/allAlarmRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:id="@+id/allAlarmContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
-
+            android:layout_height="match_parent"
+            android:nestedScrollingEnabled="true"
+            android:scrollbars="vertical"/>
         <TextView
             android:id="@+id/noAllAlarmsText"
             android:layout_width="match_parent"
@@ -136,5 +119,5 @@
     </FrameLayout>
 
     <!-- 하단바 -->
-    <include layout="@layout/bottom_navigation" />
+    <include layout="@layout/bottom_navigation"/>
 </LinearLayout>
