@@ -4,21 +4,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.Switch
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class AlarmAdapter(private val alarmList: List<AlarmData>) :
+class AlarmAdapter(private val alarmList: MutableList<AlarmData>) :
     RecyclerView.Adapter<AlarmAdapter.AlarmViewHolder>() {
 
-    class AlarmViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val timeText: TextView = view.findViewById(R.id.time)  // 시간 (시)
-        val minuteText: TextView = view.findViewById(R.id.min)  // 분
-        val reminderTitle: TextView = view.findViewById(R.id.reminder_title)  // 알람 제목
-        val remindText: TextView = view.findViewById(R.id.remind_text)  // 리마인드 여부
-        val lightningIcon: ImageView = view.findViewById(R.id.lightning_icon)  // 번개 아이콘
-        val bookmarkIcon: ImageView = view.findViewById(R.id.bookmark_icon)  // 북마크 아이콘
+    interface OnItemClickListener {
+        fun onLightningClick(alarm: AlarmData, position: Int)
+        fun onBookmarkClick(alarm: AlarmData, position: Int)
+    }
+
+    private var listener: OnItemClickListener? = null
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
+
+    inner class AlarmViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val timeText: TextView = itemView.findViewById(R.id.time)
+        val minText: TextView = itemView.findViewById(R.id.min)
+        val titleText: TextView = itemView.findViewById(R.id.reminder_title)
+        val remindText: TextView = itemView.findViewById(R.id.remind_text)
+        val lightningIcon: ImageView = itemView.findViewById(R.id.lightning_icon)
+        val bookmarkIcon: ImageView = itemView.findViewById(R.id.bookmark_icon)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
@@ -29,34 +37,32 @@ class AlarmAdapter(private val alarmList: List<AlarmData>) :
 
     override fun onBindViewHolder(holder: AlarmViewHolder, position: Int) {
         val alarm = alarmList[position]
-
-        // 시간 설정 (AM/PM 포함)
-        holder.timeText.text = "${alarm.hour}시"
-        holder.minuteText.text = "${alarm.minute}분"
-
-        // 알람 제목 설정
-        holder.reminderTitle.text = alarm.detailsText
-
-        // 리마인드 여부 표시
-        if (alarm.remindEnabled) {
-            holder.remindText.visibility = View.VISIBLE
-        } else {
-            holder.remindText.visibility = View.GONE
+        val displayHour = when {
+            alarm.amPm == "PM" && alarm.hour != 12 -> alarm.hour + 12
+            alarm.amPm == "AM" && alarm.hour == 12 -> 0
+            else -> alarm.hour
         }
+        holder.timeText.text = "${displayHour}시"
+        holder.minText.text = "${alarm.minute}분"
+        holder.titleText.text = alarm.detailsText
+        holder.remindText.visibility = if (alarm.remindEnabled) View.VISIBLE else View.GONE
+        holder.lightningIcon.setImageResource(
+            if (alarm.isActive) R.drawable.ok_thunder else R.drawable.no_thunder
+        )
+        holder.bookmarkIcon.setImageResource(
+            if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
+        )
+        // isDeleted가 true이면 투명도를 낮춰 "삭제됨" 상태로 표현
+        holder.itemView.alpha = if (alarm.isDeleted) 0.5f else 1f
 
-        // 번개 아이콘 표시 여부
-        if (alarm.lightningEnabled) {
-            holder.lightningIcon.setImageResource(R.drawable.ok_thunder)  // 활성화된 번개 아이콘
-        } else {
-            holder.lightningIcon.setImageResource(R.drawable.no_thunder)  // 비활성화된 번개 아이콘
+        // 아이콘 클릭 이벤트
+        holder.lightningIcon.setOnClickListener {
+            listener?.onLightningClick(alarm, position)
         }
-
-        // 북마크 아이콘 클릭 이벤트 예시 (추가 기능 가능)
         holder.bookmarkIcon.setOnClickListener {
-            Toast.makeText(it.context, "${alarm.detailsText} 북마크 클릭됨!", Toast.LENGTH_SHORT).show()
+            listener?.onBookmarkClick(alarm, position)
         }
     }
 
     override fun getItemCount(): Int = alarmList.size
 }
-
