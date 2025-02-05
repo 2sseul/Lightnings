@@ -29,6 +29,10 @@ class BookmarkActivity : ComponentActivity() {
             startActivity(intent)
         }
 
+        findViewById<ImageView>(R.id.settings).setOnClickListener {
+            startActivity(Intent(this, SettingActivity::class.java))
+        }
+
         loadBookmarkedAlarms()
     }
 
