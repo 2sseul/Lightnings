@@ -43,7 +43,7 @@ class BookmarkActivity : ComponentActivity() {
 
                 for (alarmSnapshot in snapshot.children) {
                     val alarm = alarmSnapshot.getValue(AlarmData::class.java)
-                    if (alarm != null && alarm.isBookmarked) { // ✅ isBookmarked=true 인 경우만 추가
+                    if (alarm != null && alarm.isBookmarked) { // isBookmarked=true 인 경우만 추가
                         val alarmView = createAlarmView(alarm, alarmSnapshot.key!!)
                         bookmarkContainer.addView(alarmView)
                     }
@@ -76,18 +76,18 @@ class BookmarkActivity : ComponentActivity() {
         minText.text = "${alarm.minute}분"
         titleText.text = alarm.detailsText
 
-        // ✅ 북마크 상태 반영
+        // 북마크 상태 반영
         bookmarkIcon.setImageResource(R.drawable.list_bookmark)
 
         bookmarkIcon.setOnClickListener {
-            database.child(alarmId).child("isBookmarked").setValue(false) // ✅ 북마크 해제
+            database.child(alarmId).child("isBookmarked").setValue(false) // 북마크 해제
                 .addOnSuccessListener {
-                    // ✅ UI 즉시 갱신 (북마크 목록에서 제거)
+                    // UI 즉시 갱신 (북마크 목록에서 제거)
                     loadBookmarkedAlarms()
                 }
         }
 
-        // ✅ `marginBottom` 적용 (20dp)
+        // `marginBottom` 적용 (20dp)
         val layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT

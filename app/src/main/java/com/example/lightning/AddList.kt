@@ -53,7 +53,7 @@ class AddList : ComponentActivity() {
             val alarmTimeMillis = getAlarmTimeMillis(formattedHour, minute, amPm)
             val currentTimeMillis = System.currentTimeMillis()
 
-            // ✅ 알람 시간이 현재 시간보다 과거라면 자동으로 "다음 날"로 설정
+            // 알람 시간이 현재 시간보다 과거라면 자동으로 "다음 날"로 설정
             val adjustedAlarmTimeMillis = if (alarmTimeMillis <= currentTimeMillis) {
                 alarmTimeMillis + 24 * 60 * 60 * 1000 // 24시간 추가
             } else {
@@ -90,7 +90,7 @@ class AddList : ComponentActivity() {
             "detailsText" to detailsText,
             "isBookmarked" to false,
             "isActive" to lightningEnabled,
-            "alarmTimeMillis" to alarmTimeMillis // ✅ Firebase에 저장
+            "alarmTimeMillis" to alarmTimeMillis // Firebase에 저장
         )
 
         database.child("alarms").child(userId).push().setValue(alarmData)

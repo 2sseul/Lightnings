@@ -22,13 +22,8 @@ class SettingActivity : AppCompatActivity() {
             startActivity(Intent(this, AddList::class.java))
         }
 
-        // 설정 버튼을 클릭하면 현재 설정 화면(SettingActivity)로 이동하는 대신
-        // "이미 설정 화면입니다"라는 토스트 메시지를 보여줍니다.
-        // 만약 다른 설정 액티비티로 이동하고 싶다면 Intent를 수정하세요.
         findViewById<ImageView>(R.id.settings).setOnClickListener {
             Toast.makeText(this, "이미 설정 화면입니다.", Toast.LENGTH_SHORT).show()
-            // 또는 다른 액티비티로 이동:
-            // startActivity(Intent(this, AnotherSettingsActivity::class.java))
         }
     }
 }
