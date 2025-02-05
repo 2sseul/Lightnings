@@ -59,7 +59,16 @@ class BookmarkActivity : ComponentActivity() {
         val titleText = alarmView.findViewById<TextView>(R.id.reminder_title)
         val bookmarkIcon = alarmView.findViewById<ImageView>(R.id.bookmark_icon)
 
-        timeText.text = "${alarm.hour}시"
+        // ✅ 오후(PM) 시간 변환: 12 더하기
+        val displayHour = if (alarm.amPm == "PM" && alarm.hour != 12) {
+            alarm.hour + 12
+        } else if (alarm.amPm == "AM" && alarm.hour == 12) {
+            0 // 12 AM → 0시 변환
+        } else {
+            alarm.hour
+        }
+
+        timeText.text = "${displayHour}시"
         minText.text = "${alarm.minute}분"
         titleText.text = alarm.detailsText
 
@@ -81,7 +90,9 @@ class BookmarkActivity : ComponentActivity() {
         )
         layoutParams.setMargins(0, 0, 0, 20) // Bottom margin = 20dp
         alarmView.layoutParams = layoutParams
+
         return alarmView
     }
+
 
 }

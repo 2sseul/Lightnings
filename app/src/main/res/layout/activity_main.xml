@@ -52,24 +52,38 @@
     </LinearLayout>
 
     <!-- 현재 알림 목록 -->
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_marginTop="20dp"
         android:layout_weight="1">
 
-        <LinearLayout
-            android:id="@+id/currentAlarmContainer"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
-    </ScrollView>
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/currentAlarmContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <TextView
+            android:id="@+id/noCurrentAlarmsText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="아래의 플러스 버튼으로\n알림을 지정하세요."
+            android:textSize="16sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
 
     <!-- 하단 전체 알림 제목 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -82,33 +96,45 @@
                 android:id="@+id/allAlarm"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_marginTop="20dp"
                 android:layout_weight="1"
                 android:gravity="center|left"
                 android:text="전체알림"
                 android:textColor="#000000"
                 android:textSize="18dp"
                 android:textStyle="bold" />
-
         </LinearLayout>
     </LinearLayout>
 
     <!-- 전체 알림 목록 -->
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_weight="1"
         android:layout_marginTop="20dp">
 
-        <LinearLayout
-            android:id="@+id/allAlarmContainer"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
-    </ScrollView>
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/allAlarmContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <TextView
+            android:id="@+id/noAllAlarmsText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="오늘 설정한\n알림이 없습니다."
+            android:textSize="16sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
 
     <!-- 하단바 -->
-    <include
-        layout="@layout/bottom_navigation" />
-
+    <include layout="@layout/bottom_navigation" />
 </LinearLayout>
