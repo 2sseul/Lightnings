@@ -1,34 +1,52 @@
 package com.example.lightning
 
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
+import android.util.Log
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.*
 
 class BookmarkActivity : ComponentActivity() {
+
     private lateinit var database: DatabaseReference
-    private lateinit var bookmarkContainer: LinearLayout
-    private lateinit var btnAdd: ImageView // 추가 버튼
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var alarmAdapter: AlarmAdapter
+    private lateinit var btnAdd: ImageView
+
+    // 하나의 리스트 인스턴스를 공유 (어댑터와 동일)
+    private val alarmList = mutableListOf<Pair<String, AlarmData>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookmark)
 
-        database = FirebaseDatabase.getInstance().reference.child("alarms").child("test_user")
-        bookmarkContainer = findViewById(R.id.bookmarkContainer)
+        // Firebase 데이터베이스의 "alarms/test_user" 경로 참조
+        database = FirebaseDatabase.getInstance().reference
+            .child("alarms")
+            .child("test_user")
 
-        // 알람 추가 버튼 (btnAdd) 클릭 시 `AddList`로 이동하도록 설정
+        // RecyclerView 초기화 (레이아웃 파일의 RecyclerView ID가 currentAlarmRecyclerView)
+        recyclerView = findViewById(R.id.currentAlarmRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        // alarmList를 그대로 전달하여 어댑터와 공유
+        alarmAdapter = AlarmAdapter(alarmList)
+        recyclerView.adapter = alarmAdapter
+
+        // 단 하나의 ItemTouchHelper 부착 (중복 부착 제거)
+        attachSwipeHandler(recyclerView)
+
         btnAdd = findViewById(R.id.btnAdd)
         btnAdd.setOnClickListener {
-            val intent = Intent(this, AddList::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, AddList::class.java))
         }
-
         findViewById<ImageView>(R.id.settings).setOnClickListener {
             startActivity(Intent(this, SettingActivity::class.java))
         }
@@ -36,67 +54,101 @@ class BookmarkActivity : ComponentActivity() {
         loadBookmarkedAlarms()
     }
 
-    private fun loadBookmarkedAlarms() {
-        database.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                bookmarkContainer.removeAllViews() // 기존 데이터 초기화
+    // 단 하나의 ItemTouchHelper 부착
+    private fun attachSwipeHandler(recyclerView: RecyclerView) {
+        val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
 
-                for (alarmSnapshot in snapshot.children) {
-                    val alarm = alarmSnapshot.getValue(AlarmData::class.java)
-                    if (alarm != null && alarm.isBookmarked) { // isBookmarked=true 인 경우만 추가
-                        val alarmView = createAlarmView(alarm, alarmSnapshot.key!!)
-                        bookmarkContainer.addView(alarmView)
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+
+                if (position in 0 until alarmList.size) {
+                    val (alarmId, _) = alarmList[position]
+                    // 반드시 알람 키가 null 또는 빈 문자열이 아니어야 함.
+                    if (alarmId.isEmpty()) {
+                        Log.e("BookmarkActivity", "빈 alarmId를 발견했습니다. 삭제를 건너뜁니다.")
+                        alarmAdapter.notifyDataSetChanged()
+                        return
                     }
+                    Log.d("BookmarkActivity", "스와이프 삭제 시 alarm id: $alarmId, position: $position")
+
+                    // 삭제 동작: isDeleted 값을 true로 업데이트 (삭제 처리)
+                    database.child(alarmId).child("isDeleted").setValue(true)
+                        .addOnSuccessListener {
+                            Log.d("BookmarkActivity", "Firebase에서 삭제 성공: $alarmId")
+                            // 여기서는 로컬 리스트 업데이트 없이, 데이터베이스의 최신 상태를 다시 불러옵니다.
+                            loadBookmarkedAlarms()
+                        }
+                        .addOnFailureListener {
+                            Log.e("BookmarkActivity", "Firebase에서 삭제 실패: $alarmId")
+                            alarmAdapter.notifyDataSetChanged()
+                        }
+                } else {
+                    Log.e("BookmarkActivity", "onSwiped()에서 유효하지 않은 인덱스 접근: $position")
+                    alarmAdapter.notifyDataSetChanged()
                 }
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                val itemView = viewHolder.itemView
+                val background = ColorDrawable(Color.RED)
+                background.setBounds(
+                    itemView.right + dX.toInt(),
+                    itemView.top,
+                    itemView.right,
+                    itemView.bottom
+                )
+                background.draw(c)
+                val deleteIcon = ContextCompat.getDrawable(this@BookmarkActivity, R.drawable.ic_delete)
+                deleteIcon?.let {
+                    val iconMargin = (itemView.height - it.intrinsicHeight) / 2
+                    val iconTop = itemView.top + iconMargin
+                    val iconBottom = iconTop + it.intrinsicHeight
+                    val iconLeft = itemView.right - iconMargin - it.intrinsicWidth
+                    val iconRight = itemView.right - iconMargin
+                    it.setBounds(iconLeft, iconTop, iconRight, iconBottom)
+                    it.draw(c)
+                }
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+        }
+        ItemTouchHelper(swipeCallback).attachToRecyclerView(recyclerView)
+    }
+
+    private fun loadBookmarkedAlarms() {
+        // 사용 후 리스너를 중복해서 붙이지 않도록 주의할 것(이 예제에서는 단순화를 위해 addValueEventListener 사용)
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val newList = mutableListOf<Pair<String, AlarmData>>()
+                for (alarmSnapshot in snapshot.children) {
+                    val key = alarmSnapshot.key
+                    val alarm = alarmSnapshot.getValue(AlarmData::class.java)
+                    // key가 null이 아니어야 함
+                    if (alarm != null && key != null) {
+                        alarm.id = key
+                        // 북마크된 항목 중 삭제되지 않은 것만 추가
+                        if (alarm.isBookmarked && !alarm.isDeleted) {
+                            newList.add(Pair(key, alarm))
+                        }
+                    }
+                }
+                alarmAdapter.updateData(newList)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("BookmarkActivity", "데이터 읽기 실패", error.toException())
+            }
         })
     }
-
-    private fun createAlarmView(alarm: AlarmData, alarmId: String): View {
-        val inflater = LayoutInflater.from(this)
-        val alarmView = inflater.inflate(R.layout.alarm_listbox, null)
-
-        val timeText = alarmView.findViewById<TextView>(R.id.time)
-        val minText = alarmView.findViewById<TextView>(R.id.min)
-        val titleText = alarmView.findViewById<TextView>(R.id.reminder_title)
-        val bookmarkIcon = alarmView.findViewById<ImageView>(R.id.bookmark_icon)
-
-        // ✅ 오후(PM) 시간 변환: 12 더하기
-        val displayHour = if (alarm.amPm == "PM" && alarm.hour != 12) {
-            alarm.hour + 12
-        } else if (alarm.amPm == "AM" && alarm.hour == 12) {
-            0 // 12 AM → 0시 변환
-        } else {
-            alarm.hour
-        }
-
-        timeText.text = "${displayHour}시"
-        minText.text = "${alarm.minute}분"
-        titleText.text = alarm.detailsText
-
-        // 북마크 상태 반영
-        bookmarkIcon.setImageResource(R.drawable.list_bookmark)
-
-        bookmarkIcon.setOnClickListener {
-            database.child(alarmId).child("isBookmarked").setValue(false) // 북마크 해제
-                .addOnSuccessListener {
-                    // UI 즉시 갱신 (북마크 목록에서 제거)
-                    loadBookmarkedAlarms()
-                }
-        }
-
-        // `marginBottom` 적용 (20dp)
-        val layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        layoutParams.setMargins(0, 0, 0, 20) // Bottom margin = 20dp
-        alarmView.layoutParams = layoutParams
-
-        return alarmView
-    }
-
-
 }

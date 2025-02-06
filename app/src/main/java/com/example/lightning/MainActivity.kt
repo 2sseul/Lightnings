@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.Switch
@@ -21,15 +22,10 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var database: DatabaseReference
 
-    // 현재알림 영역 (RecyclerView)와 어댑터, 리스트
-    private lateinit var currentAlarmRecyclerView: RecyclerView
-    private lateinit var currentAlarmAdapter: AlarmAdapter
-    private val currentAlarmList = mutableListOf<AlarmData>()
-
-    // 전체알림 영역 (RecyclerView)와 어댑터, 리스트
-    private lateinit var allAlarmRecyclerView: RecyclerView
-    private lateinit var allAlarmAdapter: AlarmAdapter
-    private val allAlarmList = mutableListOf<AlarmData>()
+    // 현재알림 영역: 타입을 MutableList<Pair<String, AlarmData>>로 변경
+    private val currentAlarmList = mutableListOf<Pair<String, AlarmData>>()
+    // 전체알림 영역: 타입을 MutableList<Pair<String, AlarmData>>로 변경
+    private val allAlarmList = mutableListOf<Pair<String, AlarmData>>()
 
     // 안내 문구 TextView (각 섹션)
     private lateinit var noCurrentAlarmsText: TextView
@@ -37,6 +33,13 @@ class MainActivity : ComponentActivity() {
 
     // (삭제된 항목을 중복 처리 방지를 위한 집합 – 필요시 사용)
     private val hiddenAlarmIds = mutableSetOf<String>()
+
+    // RecyclerView와 어댑터 선언
+    private lateinit var currentAlarmRecyclerView: RecyclerView
+    private lateinit var currentAlarmAdapter: AlarmAdapter
+
+    private lateinit var allAlarmRecyclerView: RecyclerView
+    private lateinit var allAlarmAdapter: AlarmAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +59,6 @@ class MainActivity : ComponentActivity() {
         currentAlarmRecyclerView.apply {
             adapter = currentAlarmAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
-            // (원하는 경우 XML의 layoutAnimation 속성을 적용할 수 있음)
         }
 
         // 전체알림 RecyclerView 초기화
@@ -66,7 +68,7 @@ class MainActivity : ComponentActivity() {
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
 
-        // 기타 UI 처리 (북마크, 추가 버튼, 일괄 정지 스위치)
+        // 기타 UI 처리 (북마크, 추가 버튼, 스위치 등)
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
             startActivity(Intent(this, BookmarkActivity::class.java))
         }
@@ -76,45 +78,25 @@ class MainActivity : ComponentActivity() {
         findViewById<Switch>(R.id.switch_all_stop).setOnCheckedChangeListener { _, isChecked ->
             updateCurrentAlarmsState(isChecked)
         }
-
-        // 네비게이션(하단바) 설정 아이콘 클릭 시 SettingsActivity로 이동
         findViewById<ImageView>(R.id.settings).setOnClickListener {
             startActivity(Intent(this, SettingActivity::class.java))
         }
 
-        // 자정이면 북마크되지 않은 알람의 isDeleted 플래그 업데이트
         resetAlarmsAtMidnight()
-
-        // Firebase 데이터 로드 후, 두 섹션에 배치
         loadAlarmsFromFirebase()
 
-        // 두 RecyclerView에 스와이프 삭제 UI 적용 (삭제 시 isDeleted 업데이트 후 notifyItemChanged)
+        // 스와이프 삭제 UI 적용
         attachSwipeHandler(currentAlarmRecyclerView, currentAlarmAdapter, currentAlarmList)
         attachSwipeHandler(allAlarmRecyclerView, allAlarmAdapter, allAlarmList)
 
-        // 어댑터의 아이콘 클릭 이벤트 처리 (두 어댑터 모두 동일하게 MainActivity에서 처리)
+        // 어댑터의 아이콘 클릭 이벤트 처리
         val itemClickListener = object : AlarmAdapter.OnItemClickListener {
             override fun onLightningClick(alarm: AlarmData, position: Int) {
                 val newActiveStatus = !alarm.isActive
-                // Firebase 업데이트
                 database.child(alarm.id).child("isActive").setValue(newActiveStatus)
                     .addOnSuccessListener {
-                        // 로컬 업데이트: 상태 변경 후 해당 알람을 리스트에서 서로 이동
-                        alarm.isActive = newActiveStatus
-                        if (newActiveStatus) {
-                            // Lightning On → 해당 알람은 현재알림에 있어야 함
-                            if (allAlarmList.remove(alarm)) {
-                                currentAlarmList.add(alarm)
-                            }
-                        } else {
-                            // Lightning Off → 해당 알람은 전체알림으로 이동
-                            if (currentAlarmList.remove(alarm)) {
-                                allAlarmList.add(alarm)
-                            }
-                        }
-                        currentAlarmAdapter.notifyDataSetChanged()
-                        allAlarmAdapter.notifyDataSetChanged()
-                        // 추가로 loadAlarmsFromFirebase() 호출하여 서버와 동기화할 수도 있음
+                        // 업데이트 후 서버와 동기화하거나 로컬 업데이트 후 리스트 이동 처리
+                        loadAlarmsFromFirebase()
                     }
                     .addOnFailureListener {
                         loadAlarmsFromFirebase()
@@ -131,11 +113,10 @@ class MainActivity : ComponentActivity() {
         allAlarmAdapter.setOnItemClickListener(itemClickListener)
     }
 
-    // 공통 스와이프 삭제 핸들러 (왼쪽 스와이프 시 isDeleted를 true로 업데이트한 후 notifyItemChanged)
     private fun attachSwipeHandler(
         recyclerView: RecyclerView,
         adapter: AlarmAdapter,
-        alarmList: MutableList<AlarmData>
+        alarmList: MutableList<Pair<String, AlarmData>>
     ) {
         val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             override fun onMove(
@@ -146,8 +127,9 @@ class MainActivity : ComponentActivity() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
-                val alarm = alarmList[position]
-                // Firebase 업데이트: isDeleted true
+                // Pair의 두 번째 값(AlarmData)에서 id 사용
+                val alarm = alarmList[position].second
+                Log.d("MainActivity", "스와이프 삭제 시 alarm id: ${alarm.id}")
                 database.child(alarm.id).child("isDeleted").setValue(true)
                     .addOnSuccessListener {
                         adapter.notifyItemChanged(position)
@@ -191,10 +173,10 @@ class MainActivity : ComponentActivity() {
         ItemTouchHelper(swipeCallback).attachToRecyclerView(recyclerView)
     }
 
-    // Firebase 데이터 로드 – 기존 데이터를 새로 분리하여 할당
     private fun loadAlarmsFromFirebase() {
         database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("Firebase", "데이터 스냅샷: ${snapshot.value}")
                 currentAlarmList.clear()
                 allAlarmList.clear()
                 for (alarmSnapshot in snapshot.children) {
@@ -203,19 +185,16 @@ class MainActivity : ComponentActivity() {
                         if (alarm.id.isEmpty()) {
                             alarm.id = alarmSnapshot.key ?: ""
                         }
-                        // isDeleted 또는 스와이프 처리된 항목은 제외
                         if (alarm.isDeleted || hiddenAlarmIds.contains(alarm.id)) continue
-                        // 라이트닝(On) 상태이면 무조건 현재알림에, 그렇지 않으면 전체알림에 배치
                         if (alarm.isActive) {
-                            currentAlarmList.add(alarm)
+                            currentAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         } else {
-                            allAlarmList.add(alarm)
+                            allAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         }
                     }
                 }
                 currentAlarmAdapter.notifyDataSetChanged()
                 allAlarmAdapter.notifyDataSetChanged()
-                // 스크롤 애니메이션 적용 (XML layoutAnimation이나 scheduleLayoutAnimation() 사용 가능)
                 currentAlarmRecyclerView.scheduleLayoutAnimation()
                 allAlarmRecyclerView.scheduleLayoutAnimation()
                 updateNoAlarmsText()
@@ -224,18 +203,17 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    // 안내 문구 업데이트 (데이터가 없으면 해당 TextView 표시)
     private fun updateNoAlarmsText() {
         noCurrentAlarmsText.visibility = if (currentAlarmList.isEmpty()) View.VISIBLE else View.GONE
         noAllAlarmsText.visibility = if (allAlarmList.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    // 자정이면 북마크되지 않은 알람의 isDeleted를 true로 업데이트
     private fun resetAlarmsAtMidnight() {
         val calendar = Calendar.getInstance()
         if (calendar.get(Calendar.HOUR_OF_DAY) == 0) {
             database.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d("Firebase", "데이터 스냅샷: ${snapshot.value}")
                     for (alarmSnapshot in snapshot.children) {
                         val alarm = alarmSnapshot.getValue(AlarmData::class.java)
                         if (alarm != null && !alarm.isBookmarked) {
@@ -244,12 +222,13 @@ class MainActivity : ComponentActivity() {
                     }
                     loadAlarmsFromFirebase()
                 }
-                override fun onCancelled(error: DatabaseError) {}
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Firebase", "데이터 읽기 실패", error.toException())
+                }
             })
         }
     }
 
-    // 스위치 토글 시 모든 알람의 isActive 업데이트 (일괄 정지)
     private fun updateCurrentAlarmsState(isStopped: Boolean) {
         database.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

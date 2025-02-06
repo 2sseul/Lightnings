@@ -6,8 +6,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.database.FirebaseDatabase
 
-class AlarmAdapter(private val alarmList: MutableList<AlarmData>) :
+class AlarmAdapter(private val alarmList: MutableList<Pair<String, AlarmData>>) :
     RecyclerView.Adapter<AlarmAdapter.AlarmViewHolder>() {
 
     interface OnItemClickListener {
@@ -36,7 +37,7 @@ class AlarmAdapter(private val alarmList: MutableList<AlarmData>) :
     }
 
     override fun onBindViewHolder(holder: AlarmViewHolder, position: Int) {
-        val alarm = alarmList[position]
+        val (alarmId, alarm) = alarmList[position]
         val displayHour = when {
             alarm.amPm == "PM" && alarm.hour != 12 -> alarm.hour + 12
             alarm.amPm == "AM" && alarm.hour == 12 -> 0
@@ -52,10 +53,9 @@ class AlarmAdapter(private val alarmList: MutableList<AlarmData>) :
         holder.bookmarkIcon.setImageResource(
             if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
         )
-        // isDeleted가 true이면 투명도를 낮춰 "삭제됨" 상태로 표현
-        holder.itemView.alpha = if (alarm.isDeleted) 0.5f else 1f
+        // 삭제된 항목은 adapter에서는 이미 필터링하므로 이곳은 생략 가능
+        // holder.itemView.alpha = if (alarm.isDeleted) 0.5f else 1f
 
-        // 아이콘 클릭 이벤트
         holder.lightningIcon.setOnClickListener {
             listener?.onLightningClick(alarm, position)
         }
@@ -65,4 +65,28 @@ class AlarmAdapter(private val alarmList: MutableList<AlarmData>) :
     }
 
     override fun getItemCount(): Int = alarmList.size
+
+    // Firebase에서 새 데이터를 받아 업데이트하는 메서드
+    fun updateData(newList: MutableList<Pair<String, AlarmData>>) {
+        alarmList.clear()
+        alarmList.addAll(newList)
+        notifyDataSetChanged()
+    }
+
+    // 스와이프 삭제 시 호출: Firebase의 isDeleted를 true로 업데이트 후, 로컬 리스트에서도 제거
+    fun removeItem(position: Int) {
+        if (position in 0 until alarmList.size) {
+            val (alarmId, _) = alarmList[position]
+            FirebaseDatabase.getInstance().reference
+                .child("alarms")
+                .child("test_user")
+                .child(alarmId)
+                .child("isDeleted")
+                .setValue(true)
+                .addOnSuccessListener {
+                    alarmList.removeAt(position)
+                    notifyDataSetChanged()
+                }
+        }
+    }
 }
