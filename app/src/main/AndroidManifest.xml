@@ -35,6 +35,13 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.Lightning" />
 
+        <!-- Edit 선언 -->
+        <activity
+            android:name=".AlarmEditActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <!-- Bookmark 선언 -->
         <activity
             android:name=".BookmarkActivity"

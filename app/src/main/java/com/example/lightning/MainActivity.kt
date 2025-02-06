@@ -108,6 +108,14 @@ class MainActivity : ComponentActivity() {
                     .addOnSuccessListener { loadAlarmsFromFirebase() }
                     .addOnFailureListener { loadAlarmsFromFirebase() }
             }
+
+            override fun onItemClick(alarm: AlarmData, position: Int) {
+                // 아이템 전체 클릭 시 AlarmEditActivity로 전환
+                val intent = Intent(this@MainActivity, AlarmEditActivity::class.java)
+                intent.putExtra("alarmId", alarm.id)
+                // 만약 AlarmData 전체를 전달하려면, AlarmData를 Serializable 또는 Parcelable로 만들고 putExtra("alarmData", alarm) 등으로 전달
+                startActivity(intent)
+            }
         }
         currentAlarmAdapter.setOnItemClickListener(itemClickListener)
         allAlarmAdapter.setOnItemClickListener(itemClickListener)

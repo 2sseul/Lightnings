@@ -14,6 +14,7 @@ class AlarmAdapter(private val alarmList: MutableList<Pair<String, AlarmData>>) 
     interface OnItemClickListener {
         fun onLightningClick(alarm: AlarmData, position: Int)
         fun onBookmarkClick(alarm: AlarmData, position: Int)
+        fun onItemClick(alarm: AlarmData, position: Int)
     }
 
     private var listener: OnItemClickListener? = null
@@ -53,16 +54,21 @@ class AlarmAdapter(private val alarmList: MutableList<Pair<String, AlarmData>>) 
         holder.bookmarkIcon.setImageResource(
             if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
         )
-        // 삭제된 항목은 adapter에서는 이미 필터링하므로 이곳은 생략 가능
-        // holder.itemView.alpha = if (alarm.isDeleted) 0.5f else 1f
 
+        // 기존 아이콘 클릭 리스너
         holder.lightningIcon.setOnClickListener {
             listener?.onLightningClick(alarm, position)
         }
         holder.bookmarkIcon.setOnClickListener {
             listener?.onBookmarkClick(alarm, position)
         }
+
+        // 전체 아이템 클릭 시 편집 화면으로 전환 (새 리스너 메서드 호출)
+        holder.itemView.setOnClickListener {
+            listener?.onItemClick(alarm, position)
+        }
     }
+
 
     override fun getItemCount(): Int = alarmList.size
 
