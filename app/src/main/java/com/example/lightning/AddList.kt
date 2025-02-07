@@ -90,6 +90,7 @@ class AddList : ComponentActivity() {
             "detailsText" to detailsText,
             "isBookmarked" to false,
             "isActive" to lightningEnabled,
+            "isDeleted" to false,
             "alarmTimeMillis" to alarmTimeMillis // Firebase에 저장
         )
 
