@@ -39,6 +39,7 @@ class AlarmAdapter(private val alarmList: MutableList<Pair<String, AlarmData>>) 
 
     override fun onBindViewHolder(holder: AlarmViewHolder, position: Int) {
         val (alarmId, alarm) = alarmList[position]
+        // 시간 표시 (24시간 형식 변환)
         val displayHour = when {
             alarm.amPm == "PM" && alarm.hour != 12 -> alarm.hour + 12
             alarm.amPm == "AM" && alarm.hour == 12 -> 0
@@ -48,27 +49,28 @@ class AlarmAdapter(private val alarmList: MutableList<Pair<String, AlarmData>>) 
         holder.minText.text = "${alarm.minute}분"
         holder.titleText.text = alarm.detailsText
         holder.remindText.visibility = if (alarm.remindEnabled) View.VISIBLE else View.GONE
+
+        // 라이트닝 아이콘: lightningEnabled 값에 따라 아이콘 변경
         holder.lightningIcon.setImageResource(
-            if (alarm.isActive) R.drawable.ok_thunder else R.drawable.no_thunder
+            if (alarm.lightningEnabled) R.drawable.ok_thunder else R.drawable.no_thunder
         )
+
+        // 북마크 아이콘: isBookmarked 값에 따라 아이콘 변경
         holder.bookmarkIcon.setImageResource(
             if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
         )
 
-        // 기존 아이콘 클릭 리스너
+        // 클릭 이벤트 처리
         holder.lightningIcon.setOnClickListener {
             listener?.onLightningClick(alarm, position)
         }
         holder.bookmarkIcon.setOnClickListener {
             listener?.onBookmarkClick(alarm, position)
         }
-
-        // 전체 아이템 클릭 시 편집 화면으로 전환 (새 리스너 메서드 호출)
         holder.itemView.setOnClickListener {
             listener?.onItemClick(alarm, position)
         }
     }
-
 
     override fun getItemCount(): Int = alarmList.size
 
