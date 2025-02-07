@@ -1,9 +1,16 @@
 package com.example.lightning
 
+import SettingActivity
+import UniqueIDManager
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -15,6 +22,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import com.google.firebase.database.*
 import java.util.Calendar
 
@@ -22,16 +30,16 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var database: DatabaseReference
 
-    // 현재알림 영역: 타입을 MutableList<Pair<String, AlarmData>>로 변경
+    // 현재알림 영역: lightningEnabled가 true인 알람
     private val currentAlarmList = mutableListOf<Pair<String, AlarmData>>()
-    // 전체알림 영역: 타입을 MutableList<Pair<String, AlarmData>>로 변경
+    // 전체알림 영역: lightningEnabled가 false인 알람
     private val allAlarmList = mutableListOf<Pair<String, AlarmData>>()
 
     // 안내 문구 TextView (각 섹션)
     private lateinit var noCurrentAlarmsText: TextView
     private lateinit var noAllAlarmsText: TextView
 
-    // (삭제된 항목을 중복 처리 방지를 위한 집합 – 필요시 사용)
+    // (삭제된 항목 중복 방지를 위한 집합)
     private val hiddenAlarmIds = mutableSetOf<String>()
 
     // RecyclerView와 어댑터 선언
@@ -41,12 +49,15 @@ class MainActivity : ComponentActivity() {
     private lateinit var allAlarmRecyclerView: RecyclerView
     private lateinit var allAlarmAdapter: AlarmAdapter
 
+    private lateinit var uniqueUserId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Firebase 초기화 ("alarms/test_user")
-        database = FirebaseDatabase.getInstance().reference.child("alarms").child("test_user")
+        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
+        database = FirebaseDatabase.getInstance().reference.child("alarms").child(uniqueUserId)
 
         // UI 요소 연결
         currentAlarmRecyclerView = findViewById(R.id.currentAlarmRecyclerView)
@@ -54,14 +65,12 @@ class MainActivity : ComponentActivity() {
         noCurrentAlarmsText = findViewById(R.id.noCurrentAlarmsText)
         noAllAlarmsText = findViewById(R.id.noAllAlarmsText)
 
-        // 현재알림 RecyclerView 초기화
+        // RecyclerView 초기화
         currentAlarmAdapter = AlarmAdapter(currentAlarmList)
         currentAlarmRecyclerView.apply {
             adapter = currentAlarmAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
-
-        // 전체알림 RecyclerView 초기화
         allAlarmAdapter = AlarmAdapter(allAlarmList)
         allAlarmRecyclerView.apply {
             adapter = allAlarmAdapter
@@ -82,43 +91,52 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(this, SettingActivity::class.java))
         }
 
+        scheduleMidnightReset()
+
         resetAlarmsAtMidnight()
         loadAlarmsFromFirebase()
 
-        // 스와이프 삭제 UI 적용
         attachSwipeHandler(currentAlarmRecyclerView, currentAlarmAdapter, currentAlarmList)
         attachSwipeHandler(allAlarmRecyclerView, allAlarmAdapter, allAlarmList)
 
-        // 어댑터의 아이콘 클릭 이벤트 처리
+        // 아이콘 클릭 이벤트 처리 (토글 기능)
         val itemClickListener = object : AlarmAdapter.OnItemClickListener {
             override fun onLightningClick(alarm: AlarmData, position: Int) {
-                val newActiveStatus = !alarm.isActive
-                database.child(alarm.id).child("isActive").setValue(newActiveStatus)
-                    .addOnSuccessListener {
-                        // 업데이트 후 서버와 동기화하거나 로컬 업데이트 후 리스트 이동 처리
-                        loadAlarmsFromFirebase()
-                    }
-                    .addOnFailureListener {
-                        loadAlarmsFromFirebase()
-                    }
+                // 라이트닝 온/오프: lightningEnabled 필드를 토글
+                val newLightningStatus = !alarm.lightningEnabled
+                Log.d("MainActivity", "라이트닝 토글: 이전=${alarm.lightningEnabled}, 이후=$newLightningStatus")
+                database.child(alarm.id).child("lightningEnabled").setValue(newLightningStatus)
+                    .addOnSuccessListener { loadAlarmsFromFirebase() }
+                    .addOnFailureListener { loadAlarmsFromFirebase() }
             }
             override fun onBookmarkClick(alarm: AlarmData, position: Int) {
                 val newBookmarkStatus = !alarm.isBookmarked
+                Log.d("MainActivity", "북마크 토글: 이전=${alarm.isBookmarked}, 이후=$newBookmarkStatus")
                 database.child(alarm.id).child("isBookmarked").setValue(newBookmarkStatus)
                     .addOnSuccessListener { loadAlarmsFromFirebase() }
                     .addOnFailureListener { loadAlarmsFromFirebase() }
             }
-
             override fun onItemClick(alarm: AlarmData, position: Int) {
-                // 아이템 전체 클릭 시 AlarmEditActivity로 전환
                 val intent = Intent(this@MainActivity, AlarmEditActivity::class.java)
                 intent.putExtra("alarmId", alarm.id)
-                // 만약 AlarmData 전체를 전달하려면, AlarmData를 Serializable 또는 Parcelable로 만들고 putExtra("alarmData", alarm) 등으로 전달
                 startActivity(intent)
             }
         }
         currentAlarmAdapter.setOnItemClickListener(itemClickListener)
         allAlarmAdapter.setOnItemClickListener(itemClickListener)
+    }
+
+    // API 31 이상에서만 onResume, onDestroy에서 알람 예약 (테스트 시 에뮬레이터 API 버전 확인)
+    @RequiresApi(Build.VERSION_CODES.S)
+    override fun onResume() {
+        super.onResume()
+        scheduleLightningPushAlarms() // 라이트닝이 켜진 알람만 예약
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    override fun onDestroy() {
+        super.onDestroy()
+        scheduleLightningPushAlarms() // 앱 종료 시에도 재예약 (원한다면)
     }
 
     private fun attachSwipeHandler(
@@ -135,7 +153,6 @@ class MainActivity : ComponentActivity() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
-                // Pair의 두 번째 값(AlarmData)에서 id 사용
                 val alarm = alarmList[position].second
                 Log.d("MainActivity", "스와이프 삭제 시 alarm id: ${alarm.id}")
                 database.child(alarm.id).child("isDeleted").setValue(true)
@@ -152,7 +169,8 @@ class MainActivity : ComponentActivity() {
                 c: Canvas,
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-                dX: Float, dY: Float,
+                dX: Float,
+                dY: Float,
                 actionState: Int,
                 isCurrentlyActive: Boolean
             ) {
@@ -183,33 +201,64 @@ class MainActivity : ComponentActivity() {
 
     private fun loadAlarmsFromFirebase() {
         database.addValueEventListener(object : ValueEventListener {
+            @RequiresApi(Build.VERSION_CODES.S)
             override fun onDataChange(snapshot: DataSnapshot) {
-                Log.d("Firebase", "데이터 스냅샷: ${snapshot.value}")
+                // hiddenAlarmIds 내용 로그 출력 (비어있어야 함)
+                Log.d("MainActivity", "hiddenAlarmIds: ${hiddenAlarmIds.joinToString(", ")}")
+
+                // Firebase 전체 스냅샷 로그 (전체 데이터 확인)
+                Log.d("MainActivity", "Firebase snapshot: ${snapshot.value}")
+
+                // 목록 초기화
                 currentAlarmList.clear()
                 allAlarmList.clear()
+
+                // 각 알람 데이터에 대해 처리
                 for (alarmSnapshot in snapshot.children) {
                     val alarm = alarmSnapshot.getValue(AlarmData::class.java)
                     if (alarm != null) {
+                        // 만약 alarm.id가 비어 있다면, Firebase 키를 사용
                         if (alarm.id.isEmpty()) {
                             alarm.id = alarmSnapshot.key ?: ""
                         }
-                        if (alarm.isDeleted || hiddenAlarmIds.contains(alarm.id)) continue
-                        if (alarm.isActive) {
+
+                        // 각 알람의 상태를 로그로 출력 (디버깅용)
+                        Log.d("MainActivity", "알람 ${alarm.id}: isDeleted=${alarm.isDeleted}, hidden=${hiddenAlarmIds.contains(alarm.id)}, lightningEnabled=${alarm.lightningEnabled}")
+
+                        // isDeleted가 true이거나 hiddenAlarmIds에 포함되어 있다면 건너뛰기
+                        if (alarm.isDeleted || hiddenAlarmIds.contains(alarm.id)) {
+                            Log.d("MainActivity", "알람 ${alarm.id} 건너뜀 (조건에 의해)")
+                            continue
+                        }
+
+                        // lightningEnabled 값에 따라 목록 분류
+                        if (alarm.lightningEnabled) {
                             currentAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         } else {
                             allAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         }
+                    } else {
+                        Log.d("MainActivity", "알람 데이터 매핑 실패: ${alarmSnapshot.value}")
                     }
                 }
+
+                Log.d("MainActivity", "currentAlarmList size: ${currentAlarmList.size}")
+                Log.d("MainActivity", "allAlarmList size: ${allAlarmList.size}")
+
                 currentAlarmAdapter.notifyDataSetChanged()
                 allAlarmAdapter.notifyDataSetChanged()
-                currentAlarmRecyclerView.scheduleLayoutAnimation()
-                allAlarmRecyclerView.scheduleLayoutAnimation()
                 updateNoAlarmsText()
+
+                // 라이트닝이 켜진 알람만 예약 (예약 함수는 별도로 구현)
+                scheduleLightningPushAlarms()
             }
-            override fun onCancelled(error: DatabaseError) {}
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("MainActivity", "데이터 읽기 실패: ${error.message}")
+            }
         })
     }
+
 
     private fun updateNoAlarmsText() {
         noCurrentAlarmsText.visibility = if (currentAlarmList.isEmpty()) View.VISIBLE else View.GONE
@@ -218,24 +267,38 @@ class MainActivity : ComponentActivity() {
 
     private fun resetAlarmsAtMidnight() {
         val calendar = Calendar.getInstance()
-        if (calendar.get(Calendar.HOUR_OF_DAY) == 0) {
+        // 현재 시각이 자정(0시)인 경우에만 실행
+        if (calendar.get(Calendar.HOUR_OF_DAY) == 1 && calendar.get(Calendar.MINUTE) == 20) {
             database.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    Log.d("Firebase", "데이터 스냅샷: ${snapshot.value}")
                     for (alarmSnapshot in snapshot.children) {
                         val alarm = alarmSnapshot.getValue(AlarmData::class.java)
+                        // 북마크되어 있지 않은 알람만 업데이트
                         if (alarm != null && !alarm.isBookmarked) {
-                            alarmSnapshot.ref.child("isDeleted").setValue(true)
+                            // isDeleted를 true, lightningEnabled를 false로 업데이트
+                            val updateMap = mapOf<String, Any>(
+                                "isDeleted" to true,
+                                "lightningEnabled" to false
+                            )
+                            alarmSnapshot.ref.updateChildren(updateMap)
+                                .addOnSuccessListener {
+                                    Log.d("MainActivity", "알람 ${alarm.id} 업데이트 성공")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("MainActivity", "알람 ${alarm.id} 업데이트 실패: ${e.message}")
+                                }
                         }
                     }
+                    // 업데이트 후 데이터를 다시 불러옴
                     loadAlarmsFromFirebase()
                 }
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e("Firebase", "데이터 읽기 실패", error.toException())
+                    Log.e("MainActivity", "데이터 읽기 실패: ${error.message}")
                 }
             })
         }
     }
+
 
     private fun updateCurrentAlarmsState(isStopped: Boolean) {
         database.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -252,17 +315,99 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    // 알람 시간(ms) 계산 (alarmTimeMillis가 0이면 사용)
-    private fun getAlarmTimeMillis(hour: Int, minute: Int, amPm: String): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        when {
-            amPm == "PM" && hour < 12 -> calendar.set(Calendar.HOUR_OF_DAY, hour + 12)
-            amPm == "AM" && hour == 12 -> calendar.set(Calendar.HOUR_OF_DAY, 0)
-            else -> calendar.set(Calendar.HOUR_OF_DAY, hour)
+    // 라이트닝이 켜진 알람만 예약하는 함수
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun scheduleLightningPushAlarms() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        // currentAlarmList와 allAlarmList에서 lightningEnabled가 true인 알람만 예약
+        for ((_, alarm) in currentAlarmList) {
+            if (!alarm.isDeleted && alarm.lightningEnabled) {
+                cancelPushAlarm(alarm, alarmManager)
+                schedulePushAlarm(alarm, alarmManager)
+            }
         }
-        calendar.set(Calendar.MINUTE, minute)
-        return calendar.timeInMillis
+        for ((_, alarm) in allAlarmList) {
+            if (!alarm.isDeleted && alarm.lightningEnabled) {
+                cancelPushAlarm(alarm, alarmManager)
+                schedulePushAlarm(alarm, alarmManager)
+            }
+        }
     }
+
+    // 개별 알람 취소 함수
+    private fun cancelPushAlarm(alarm: AlarmData, alarmManager: AlarmManager) {
+        val intent = Intent(this, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            alarm.id.hashCode(),
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
+    }
+
+    // 개별 알람 예약 함수 (로컬 알림)
+    @SuppressLint("ScheduleExactAlarm")
+    private fun schedulePushAlarm(alarm: AlarmData, alarmManager: AlarmManager) {
+        val intent = Intent(this, AlarmReceiver::class.java).apply {
+            putExtra("contentText", alarm.detailsText)
+            putExtra("alarmId", alarm.id)  // 알람 ID 전달
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            alarm.id.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, if (alarm.amPm == "PM" && alarm.hour < 12) alarm.hour + 12 else alarm.hour)
+            set(Calendar.MINUTE, alarm.minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (before(Calendar.getInstance())) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
+        )
+        Log.d("MainActivity", "푸시 알람 예약됨: alarmId=${alarm.id}, timeInMillis=${calendar.timeInMillis}, contentText=${alarm.detailsText}")
+    }
+
+    private fun scheduleMidnightReset() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, MidnightResetReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // 자정에 실행될 시간을 계산
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            // 현재 시간이 이미 자정이 지난 경우 다음 날로 설정
+            if (timeInMillis < System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+
+        // 매일 자정마다 실행 (INTERVAL_DAY)
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+
+        Log.d("MainActivity", "자정 리셋 알람 예약됨: ${calendar.timeInMillis}")
+    }
+
 }

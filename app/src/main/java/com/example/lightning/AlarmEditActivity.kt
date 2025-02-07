@@ -2,16 +2,9 @@ package com.example.lightning
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Switch
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
 class AlarmEditActivity : AppCompatActivity() {
 
@@ -23,10 +16,10 @@ class AlarmEditActivity : AppCompatActivity() {
     private lateinit var detailsEditText: EditText    // id: details_editText
     private lateinit var detailsSwitch: Switch        // id: details_switch_btn (내용 스위치)
     private lateinit var remindSwitch: Switch         // id: remind_switch_btn
+    private lateinit var timePicker: TimePicker      // id: timePicker (알람 시간 선택)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 반드시 AppCompat 테마를 사용해야 합니다.
         setContentView(R.layout.activity_alarm_edit)
 
         // 인텐트를 통해 alarmId 전달받기
@@ -42,6 +35,10 @@ class AlarmEditActivity : AppCompatActivity() {
         detailsEditText = findViewById(R.id.details_editText)
         detailsSwitch = findViewById(R.id.details_switch_btn)
         remindSwitch = findViewById(R.id.remind_switch_btn)
+        timePicker = findViewById(R.id.timePicker)
+
+        // TimePicker를 24시간 형식이 아닌 AM/PM 형식으로 설정
+        timePicker.setIs24HourView(false)
 
         // 취소 버튼 클릭 시 Activity 종료
         cancelTextView.setOnClickListener {
@@ -69,7 +66,6 @@ class AlarmEditActivity : AppCompatActivity() {
                 if (alarm != null) {
                     // EditText에 기존 내용을 채움
                     detailsEditText.setText(alarm.detailsText)
-                    // 리마인드 스위치는 alarm.remindEnabled 값 반영
                     remindSwitch.isChecked = alarm.remindEnabled
 
                     // 내용이 존재하면 내용 스위치를 true로, 그리고 EditText 보이게
@@ -80,6 +76,17 @@ class AlarmEditActivity : AppCompatActivity() {
                         detailsSwitch.isChecked = false
                         detailsEditText.visibility = View.GONE
                     }
+
+                    // 시간 설정 (오전/오후, 시, 분 반영)
+                    val hour = if (alarm.amPm == "PM" && alarm.hour < 12) {
+                        alarm.hour + 12
+                    } else if (alarm.amPm == "AM" && alarm.hour == 12) {
+                        0
+                    } else {
+                        alarm.hour
+                    }
+                    timePicker.hour = hour
+                    timePicker.minute = alarm.minute
                 } else {
                     Toast.makeText(this@AlarmEditActivity, "알람 데이터를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                 }
@@ -95,10 +102,36 @@ class AlarmEditActivity : AppCompatActivity() {
         val newDetailsEnabled = detailsSwitch.isChecked  // 내용 스위치 상태
         val newRemindEnabled = remindSwitch.isChecked
 
+        // TimePicker에서 시간 가져오기
+        var newHour = timePicker.hour
+        val newMinute = timePicker.minute
+        val newAmPm: String
+
+        // 24시간 형식을 AM/PM으로 변환
+        when {
+            newHour == 0 -> {
+                newHour = 12
+                newAmPm = "AM"
+            }
+            newHour == 12 -> {
+                newAmPm = "PM"
+            }
+            newHour > 12 -> {
+                newHour -= 12
+                newAmPm = "PM"
+            }
+            else -> {
+                newAmPm = "AM"
+            }
+        }
+
         val updateMap = mapOf(
             "detailsText" to newDetails,
             "detailsEnabled" to newDetailsEnabled,
-            "remindEnabled" to newRemindEnabled
+            "remindEnabled" to newRemindEnabled,
+            "hour" to newHour,
+            "minute" to newMinute,
+            "amPm" to newAmPm
         )
 
         FirebaseDatabase.getInstance().reference
