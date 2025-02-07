@@ -115,6 +115,26 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 번개알림 설명 (초기에는 숨김) -->
+    <LinearLayout
+        android:id="@+id/lightning_description_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:background="@drawable/edittext_radius"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="번개알림이란?\n\n일정시간 후 알림창에서 사라지는 알림으로,\n알림이 사라지기 전에 일을 수행하세요!"
+            android:textColor="#000000"
+            android:textSize="14dp"
+            android:gravity="center"/>
+    </LinearLayout>
+
     <!-- 리마인드 지정 탭 -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -183,14 +203,14 @@
                 android:textSize="16dp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/details_des_btn"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:text="\?"
-                android:background="@drawable/circle_button"
-                style="?android:attr/borderlessButtonStyle"
-                />
+<!--            <Button-->
+<!--                android:id="@+id/details_des_btn"-->
+<!--                android:layout_width="18dp"-->
+<!--                android:layout_height="18dp"-->
+<!--                android:text="\?"-->
+<!--                android:background="@drawable/circle_button"-->
+<!--                style="?android:attr/borderlessButtonStyle"-->
+<!--                />-->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
