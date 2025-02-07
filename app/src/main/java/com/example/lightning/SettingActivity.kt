@@ -1,29 +1,41 @@
-package com.example.lightning
-
-import android.content.Intent
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.Toast
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.example.lightning.R
 
 class SettingActivity : AppCompatActivity() {
+    private lateinit var lightningDescriptionLayout: LinearLayout
+    private lateinit var lightningDesButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // setting.xml 레이아웃을 사용하도록 설정
         setContentView(R.layout.setting)
 
-        // 북마크 아이콘을 클릭하면 BookmarkActivity로 이동
-        findViewById<ImageView>(R.id.bookmark).setOnClickListener {
-            startActivity(Intent(this, BookmarkActivity::class.java))
-        }
+        // 버튼과 설명 레이아웃 찾기
+        lightningDesButton = findViewById(R.id.lightning_des_btn)
+        lightningDescriptionLayout = findViewById(R.id.lightning_description_layout)
 
-        // 추가 버튼을 클릭하면 AddList 액티비티로 이동
-        findViewById<ImageView>(R.id.btnAdd).setOnClickListener {
-            startActivity(Intent(this, AddList::class.java))
-        }
+        // 초기 상태 로그 확인
+        Log.d("SettingActivity", "lightningDesButton: $lightningDesButton")
+        Log.d("SettingActivity", "lightningDescriptionLayout: $lightningDescriptionLayout")
 
-        findViewById<ImageView>(R.id.settings).setOnClickListener {
-            Toast.makeText(this, "이미 설정 화면입니다.", Toast.LENGTH_SHORT).show()
+        // 초기 상태: 설명 숨김
+        lightningDescriptionLayout.visibility = View.GONE
+
+        // 버튼 클릭 이벤트 (토글 기능)
+        lightningDesButton.setOnClickListener {
+            Log.d("SettingActivity", "lightningDesButton clicked!") // 클릭 로그
+
+            if (lightningDescriptionLayout.visibility == View.VISIBLE) {
+                Log.d("SettingActivity", "Hiding description")
+                lightningDescriptionLayout.visibility = View.GONE // 숨기기
+            } else {
+                Log.d("SettingActivity", "Showing description")
+                lightningDescriptionLayout.visibility = View.VISIBLE // 보이기
+            }
         }
     }
 }
