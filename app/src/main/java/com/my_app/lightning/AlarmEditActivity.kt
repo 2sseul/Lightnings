@@ -1,10 +1,11 @@
-package com.example.lightning
+package com.my_app.lightning
 
 import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
+
 
 class AlarmEditActivity : AppCompatActivity() {
 

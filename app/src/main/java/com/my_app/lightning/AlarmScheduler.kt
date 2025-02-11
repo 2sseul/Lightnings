@@ -1,4 +1,4 @@
-package com.example.lightning
+package com.my_app.lightning
 
 import android.app.AlarmManager
 import android.app.PendingIntent

@@ -1,5 +1,6 @@
-package com.example.lightning
+package com.my_app.lightning
 
+import UniqueIDManager
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
@@ -21,6 +22,8 @@ class BookmarkActivity : ComponentActivity() {
     private lateinit var alarmAdapter: AlarmAdapter
     private lateinit var btnAdd: ImageView
 
+    private lateinit var uniqueUserId: String
+
     // 하나의 리스트 인스턴스를 공유 (어댑터와 동일)
     private val alarmList = mutableListOf<Pair<String, AlarmData>>()
 
@@ -28,10 +31,12 @@ class BookmarkActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookmark)
 
+        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
+
         // Firebase 데이터베이스의 "alarms/test_user" 경로 참조
         database = FirebaseDatabase.getInstance().reference
             .child("alarms")
-            .child("test_user")
+            .child(uniqueUserId)
 
         // RecyclerView 초기화 (레이아웃 파일의 RecyclerView ID가 currentAlarmRecyclerView)
         recyclerView = findViewById(R.id.currentAlarmRecyclerView)
@@ -48,7 +53,7 @@ class BookmarkActivity : ComponentActivity() {
             startActivity(Intent(this, AddList::class.java))
         }
         findViewById<ImageView>(R.id.settings).setOnClickListener {
-            startActivity(Intent(this, SettingActivity::class.java))
+            startActivity(Intent(this, SettingsAcivity::class.java))
         }
 
         loadBookmarkedAlarms()

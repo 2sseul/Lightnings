@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.lightning">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
@@ -22,7 +21,7 @@
 
         <!-- MainActivity -->
         <activity
-            android:name=".MainActivity"
+            android:name="com.my_app.lightning.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Lightning">
@@ -34,33 +33,34 @@
 
         <!-- AlarmEditActivity -->
         <activity
-            android:name=".AlarmEditActivity"
+            android:name="com.my_app.lightning.AlarmEditActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <!-- BookmarkActivity -->
         <activity
-            android:name=".BookmarkActivity"
+            android:name="com.my_app.lightning.BookmarkActivity"
             android:exported="true"
             android:theme="@style/Theme.Lightning"/>
 
         <!-- AddList -->
         <activity
-            android:name=".AddList"
+            android:name="com.my_app.lightning.AddList"
             android:exported="true"
             android:theme="@style/Theme.Lightning" />
 
         <!-- SettingActivity -->
         <activity
-            android:name=".SettingActivity"
+            android:name="com.my_app.lightning.SettingsAcivity"
+            android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <!-- AlarmReceiver 등록 -->
-        <receiver android:name=".AlarmReceiver"
+        <receiver android:name="com.my_app.lightning.AlarmReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".MidnightResetReceiver"
+            android:name="com.my_app.lightning.MidnightResetReceiver"
             android:exported="false" />
 
     </application>

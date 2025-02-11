@@ -1,5 +1,6 @@
-package com.example.lightning
+package com.my_app.lightning
 
+import UniqueIDManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -13,6 +14,7 @@ class AddList : ComponentActivity() {
 
     private lateinit var database: DatabaseReference
     private var cal = Calendar.getInstance()
+    private lateinit var uniqueUserId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,7 +80,7 @@ class AddList : ComponentActivity() {
         detailsText: String,
         alarmTimeMillis: Long
     ) {
-        val userId = "test_user"
+        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
 
         val alarmData = mapOf(
             "hour" to hour,
@@ -94,7 +96,7 @@ class AddList : ComponentActivity() {
             "alarmTimeMillis" to alarmTimeMillis // Firebase에 저장
         )
 
-        database.child("alarms").child(userId).push().setValue(alarmData)
+        database.child("alarms").child(uniqueUserId).push().setValue(alarmData)
             .addOnSuccessListener {
                 Toast.makeText(this, "알림이 저장되었습니다.", Toast.LENGTH_SHORT).show()
             }

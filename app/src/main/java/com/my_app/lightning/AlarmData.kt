@@ -1,4 +1,4 @@
-package com.example.lightning
+package com.my_app.lightning
 
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.PropertyName

@@ -1,6 +1,5 @@
-package com.example.lightning
+package com.my_app.lightning
 
-import SettingActivity
 import UniqueIDManager
 import android.annotation.SuppressLint
 import android.app.AlarmManager
@@ -17,13 +16,17 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.Switch
 import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.activity.ComponentActivity
-import androidx.annotation.RequiresApi
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
@@ -88,8 +91,9 @@ class MainActivity : ComponentActivity() {
             updateCurrentAlarmsState(isChecked)
         }
         findViewById<ImageView>(R.id.settings).setOnClickListener {
-            startActivity(Intent(this, SettingActivity::class.java))
+            startActivity(Intent(this, SettingsAcivity::class.java))
         }
+
 
         scheduleMidnightReset()
 
