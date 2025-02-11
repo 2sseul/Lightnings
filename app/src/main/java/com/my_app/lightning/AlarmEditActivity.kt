@@ -6,18 +6,18 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
 
-
 class AlarmEditActivity : AppCompatActivity() {
 
     private lateinit var alarmId: String
+    private lateinit var uniqueUserId: String
 
     // XML 뷰 변수들
-    private lateinit var cancelTextView: TextView   // id: cancle
-    private lateinit var saveButton: Button         // id: saveBtn
-    private lateinit var detailsEditText: EditText    // id: details_editText
-    private lateinit var detailsSwitch: Switch        // id: details_switch_btn (내용 스위치)
-    private lateinit var remindSwitch: Switch         // id: remind_switch_btn
-    private lateinit var timePicker: TimePicker      // id: timePicker (알람 시간 선택)
+    private lateinit var cancelTextView: TextView
+    private lateinit var saveButton: Button
+    private lateinit var detailsEditText: EditText
+    private lateinit var detailsSwitch: Switch
+    private lateinit var remindSwitch: Switch
+    private lateinit var timePicker: TimePicker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,12 +53,24 @@ class AlarmEditActivity : AppCompatActivity() {
         saveButton.setOnClickListener {
             updateAlarm()
         }
+
+        // 🔹 내용 스위치 상태 변경 이벤트 추가
+        detailsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                detailsEditText.visibility = View.VISIBLE // Switch가 ON이면 EditText 보이기
+                detailsEditText.requestFocus() // EditText에 포커스 주기
+            } else {
+                detailsEditText.visibility = View.GONE // Switch가 OFF이면 EditText 숨기기
+                detailsEditText.text.clear() // 내용 초기화
+            }
+        }
     }
 
     private fun loadAlarmData() {
+        uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
         val alarmRef = FirebaseDatabase.getInstance().reference
             .child("alarms")
-            .child("test_user")
+            .child(uniqueUserId)
             .child(alarmId)
 
         alarmRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -69,7 +81,7 @@ class AlarmEditActivity : AppCompatActivity() {
                     detailsEditText.setText(alarm.detailsText)
                     remindSwitch.isChecked = alarm.remindEnabled
 
-                    // 내용이 존재하면 내용 스위치를 true로, 그리고 EditText 보이게
+                    // 🔹 스위치 초기 상태 설정
                     if (alarm.detailsText.isNotEmpty()) {
                         detailsSwitch.isChecked = true
                         detailsEditText.visibility = View.VISIBLE
@@ -135,9 +147,10 @@ class AlarmEditActivity : AppCompatActivity() {
             "amPm" to newAmPm
         )
 
+        uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
         FirebaseDatabase.getInstance().reference
             .child("alarms")
-            .child("test_user")
+            .child(uniqueUserId)
             .child(alarmId)
             .updateChildren(updateMap)
             .addOnSuccessListener {

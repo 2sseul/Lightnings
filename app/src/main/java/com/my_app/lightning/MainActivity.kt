@@ -1,6 +1,5 @@
 package com.my_app.lightning
 
-import UniqueIDManager
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -59,7 +58,7 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
 
         // Firebase 초기화 ("alarms/test_user")
-        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
+        uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
         database = FirebaseDatabase.getInstance().reference.child("alarms").child(uniqueUserId)
 
         // UI 요소 연결

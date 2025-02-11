@@ -11,6 +11,8 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.database.FirebaseDatabase
 
 class AlarmReceiver : BroadcastReceiver() {
+    private lateinit var uniqueUserId: String
+
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
 
@@ -18,13 +20,15 @@ class AlarmReceiver : BroadcastReceiver() {
         val contentTitle = intent.getStringExtra("contentText") ?: "알람이 울립니다!"
         val alarmId = intent.getStringExtra("alarmId") // 예약 시 전달한 alarmId
 
+        uniqueUserId = UniqueIDManager.getInstance(context).getUniqueUserId()
+
         Log.d("AlarmReceiver", "Alarm triggered: $contentTitle, alarmId: $alarmId")
 
         // 알람이 울리면 해당 알람의 lightningEnabled를 false로 업데이트
         if (alarmId != null) {
             val dbRef = FirebaseDatabase.getInstance().reference
                 .child("alarms")
-                .child("test_user")
+                .child(uniqueUserId)
                 .child(alarmId)
             dbRef.child("lightningEnabled").setValue(false)
                 .addOnSuccessListener {

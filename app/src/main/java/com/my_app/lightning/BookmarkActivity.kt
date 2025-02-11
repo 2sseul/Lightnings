@@ -1,6 +1,5 @@
 package com.my_app.lightning
 
-import UniqueIDManager
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
@@ -31,7 +30,7 @@ class BookmarkActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookmark)
 
-        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
+        uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
 
         // Firebase 데이터베이스의 "alarms/test_user" 경로 참조
         database = FirebaseDatabase.getInstance().reference
