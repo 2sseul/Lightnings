@@ -1,21 +1,59 @@
 {
   "project_info": {
-    "project_number": "645847144314",
-    "project_id": "lightning-app-17dc9",
-    "storage_bucket": "lightning-app-17dc9.firebasestorage.app"
+    "project_number": "466843278635",
+    "project_id": "lightnings-7901f",
+    "storage_bucket": "lightnings-7901f.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:645847144314:android:e8ee794e334e602bc428c3",
+        "mobilesdk_app_id": "1:466843278635:android:66fb47a3a2bff1f1de796e",
         "android_client_info": {
-          "package_name": "com.example.lightning"
+          "package_name": "com.my_app.lightning"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA1az2n4MNwfhWn_hAF6Kj2vaXdwi5AMSg"
+          "current_key": "AIzaSyB-n78q7SiGeAHW-kC3m6MuUsBg69MnxY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466843278635:android:89fe1e0865f303c0de796e",
+        "android_client_info": {
+          "package_name": "com.my_app.lightnings"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-n78q7SiGeAHW-kC3m6MuUsBg69MnxY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466843278635:android:6f89952c18913441de796e",
+        "android_client_info": {
+          "package_name": "my_app.lightnings"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-n78q7SiGeAHW-kC3m6MuUsBg69MnxY8"
         }
       ],
       "services": {

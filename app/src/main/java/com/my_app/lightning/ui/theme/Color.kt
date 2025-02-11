@@ -1,4 +1,4 @@
-package com.example.lightning.ui.theme
+package com.my_app.lightning.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

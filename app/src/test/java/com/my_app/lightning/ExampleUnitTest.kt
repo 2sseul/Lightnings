@@ -1,4 +1,4 @@
-package com.example.lightning
+package com.my_app.lightning
 
 import org.junit.Test
 

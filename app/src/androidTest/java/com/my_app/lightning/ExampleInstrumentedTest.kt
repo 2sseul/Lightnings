@@ -1,4 +1,4 @@
-package com.example.lightning
+package com.my_app.lightning
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

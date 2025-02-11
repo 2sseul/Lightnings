@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lightning"
+    namespace = "com.my_app.lightning"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.lightning"
+        applicationId = "com.my_app.lightning"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
