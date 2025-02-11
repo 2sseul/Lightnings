@@ -1,6 +1,5 @@
 package com.my_app.lightning
 
-import UniqueIDManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -80,7 +79,7 @@ class AddList : ComponentActivity() {
         detailsText: String,
         alarmTimeMillis: Long
     ) {
-        uniqueUserId = UniqueIDManager(this).getUniqueUserId()
+        uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
 
         val alarmData = mapOf(
             "hour" to hour,

@@ -60,7 +60,7 @@
                     android:id="@+id/remind_text"
                     android:layout_width="wrap_content"
                     android:layout_height="23dp"
-                    android:text="리마인드"
+                    android:text="천둥소리"
                     android:textStyle="bold"
                     android:textColor="#196EFF"
                     android:background="@drawable/remind_radius"
