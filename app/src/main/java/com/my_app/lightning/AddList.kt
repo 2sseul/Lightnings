@@ -52,7 +52,7 @@ class AddList : ComponentActivity() {
             val alarmTimeMillis = getAlarmTimeMillis(formattedHour, minute, amPm)
             val currentTimeMillis = System.currentTimeMillis()
 
-            // 🔹 오늘 23:59:59까지를 기준으로 futureLimit 설정
+            // 오늘 23:59:59까지를 기준으로 futureLimit 설정
             val futureLimit = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 23) // 오늘 23시
                 set(Calendar.MINUTE, 59)      // 59분
@@ -62,10 +62,10 @@ class AddList : ComponentActivity() {
 
             // "현재시간 ~ 오늘 24시 이전"이면 예정알람으로 추가
             // 그 외(현재시간 이전이거나 내일 이후)는 전체알람으로 추가
-            val lightningEnabled = alarmTimeMillis in currentTimeMillis..futureLimit
+            val isCurrentAlarm = alarmTimeMillis in currentTimeMillis..futureLimit
 
             saveDataToFirebase(
-                formattedHour, minute, amPm, lightningEnabled, remindEnabled, detailsEnabled, detailsText, alarmTimeMillis
+                formattedHour, minute, amPm, true, remindEnabled, detailsEnabled, detailsText, alarmTimeMillis, isCurrentAlarm
             )
 
             startActivity(Intent(this@AddList, MainActivity::class.java))
@@ -80,7 +80,8 @@ class AddList : ComponentActivity() {
         remindEnabled: Boolean,
         detailsEnabled: Boolean,
         detailsText: String,
-        alarmTimeMillis: Long
+        alarmTimeMillis: Long,
+        isCurrentAlarm: Boolean
     ) {
         uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
 
@@ -95,7 +96,8 @@ class AddList : ComponentActivity() {
             "isBookmarked" to false,
             "isActive" to lightningEnabled,
             "isDeleted" to false,
-            "alarmTimeMillis" to alarmTimeMillis // Firebase에 저장
+            "alarmTimeMillis" to alarmTimeMillis, // Firebase에 저장
+            "isCurrentAlarm" to isCurrentAlarm
         )
 
         database.child("alarms").child(uniqueUserId).push().setValue(alarmData)

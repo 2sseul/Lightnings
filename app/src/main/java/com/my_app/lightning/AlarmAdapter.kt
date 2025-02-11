@@ -83,24 +83,42 @@ class AlarmAdapter(private val context : Context, private val alarmList: Mutable
         holder.titleText.text = alarm.detailsText
         holder.remindText.visibility = if (alarm.remindEnabled) View.VISIBLE else View.GONE
 
+        // 지난알림일 경우 본문 색 그레이로 바꿈
         if (isGrayColor) {
             holder.titleText.setTextColor(Color.GRAY)
         }
 
-        // 라이트닝 아이콘: lightningEnabled 값에 따라 아이콘 변경
-        holder.lightningIcon.setImageResource(
-            if (alarm.lightningEnabled) R.drawable.ok_thunder else R.drawable.no_thunder
-        )
+        // 라이트닝 아이콘 설정
+        if (!alarm.isActive && alarm.lightningEnabled) {
+            // isActive가 false면서 lightningEnabled가 true인 경우
+            holder.lightningIcon.setImageResource(R.drawable.ok_thunder)
+            holder.lightningIcon.isEnabled = false
+        } else if (isGrayColor) {
+            // 전체 알람(지난 알람)의 경우 라이트닝 아이콘 비활성화 및 no_thunder 적용
+            holder.lightningIcon.setImageResource(R.drawable.no_thunder)
+            if(!alarm.isActive && alarm.lightningEnabled){
+                holder.lightningIcon.setImageResource(R.drawable.ok_thunder)
+            }
+            holder.lightningIcon.isEnabled = false
+        } else {
+            // 기본적으로 lightningEnabled에 따라 라이트닝 아이콘 변경
+            holder.lightningIcon.setImageResource(
+                if (alarm.lightningEnabled) R.drawable.ok_thunder else R.drawable.no_thunder
+            )
+            holder.lightningIcon.isEnabled = true
+        }
 
         // 북마크 아이콘: isBookmarked 값에 따라 아이콘 변경
         holder.bookmarkIcon.setImageResource(
             if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
         )
 
-//        // 클릭 이벤트 처리
-//        holder.lightningIcon.setOnClickListener {
-//            listener?.onLightningClick(alarm, position)
-//        }
+        // 클릭 이벤트 설정
+        holder.lightningIcon.setOnClickListener {
+            if (holder.lightningIcon.isEnabled) { // 비활성화된 상태에서는 클릭 불가
+                listener?.onLightningClick(alarm, position)
+            }
+        }
         holder.bookmarkIcon.setOnClickListener {
             listener?.onBookmarkClick(alarm, position)
         }

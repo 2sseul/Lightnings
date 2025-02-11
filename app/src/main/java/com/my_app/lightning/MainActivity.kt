@@ -54,6 +54,8 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var uniqueUserId: String
 
+    private var isAllStopped = false // 일괄 정지 상태 저장 변수
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -239,6 +241,8 @@ class MainActivity : ComponentActivity() {
                     set(Calendar.MILLISECOND, 999)
                 }.timeInMillis
 
+                val tempCurrentAlarms = mutableListOf<Pair<String, AlarmData>>()
+                val tempAllAlarms = mutableListOf<Pair<String, AlarmData>>()
 
                 // 각 알람 데이터에 대해 처리
                 for (alarmSnapshot in snapshot.children) {
@@ -268,10 +272,11 @@ class MainActivity : ComponentActivity() {
 
                         if (alarm.lightningEnabled && alarmTimeMillis in currentTimeMillis()..futureLimit) {
                             // 라이트닝이 켜져 있고, 현재시간 ~ 24시간 이내의 알람만 현재 알림 리스트에 추가
-                            currentAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
+                            tempCurrentAlarms.add(Pair(alarmSnapshot.key ?: "", alarm))
                         } else {
                             // 24시간이 지났거나, 라이트닝이 꺼져 있는 경우 전체 알림 리스트에 추가
-                            allAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
+                            database.child(alarm.id).child("isActive").setValue(true)
+                            tempAllAlarms.add(Pair(alarmSnapshot.key ?: "", alarm))
                         }
 
                     } else {
@@ -281,6 +286,9 @@ class MainActivity : ComponentActivity() {
 
                 Log.d("MainActivity", "currentAlarmList size: ${currentAlarmList.size}")
                 Log.d("MainActivity", "allAlarmList size: ${allAlarmList.size}")
+
+                currentAlarmList.addAll(tempCurrentAlarms.sortedWith(compareBy(::sortByAlarmTime)))
+                allAlarmList.addAll(tempAllAlarms.sortedWith(compareBy(::sortByAlarmTime)))
 
                 currentAlarmAdapter.notifyDataSetChanged()
                 allAlarmAdapter.notifyDataSetChanged()
@@ -296,6 +304,28 @@ class MainActivity : ComponentActivity() {
         })
     }
 
+
+    private fun sortByAlarmTime(alarmData: Pair<String, AlarmData>): Long {
+        return getAlarmTimeMillis(alarmData.second)
+    }
+
+    private fun getAlarmTimeMillis(alarm: AlarmData): Long {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+
+            // 🔹 AM/PM을 고려하여 24시간 형식으로 변환
+            val hour24 = when {
+                alarm.amPm == "PM" && alarm.hour < 12 -> alarm.hour + 12
+                alarm.amPm == "AM" && alarm.hour == 12 -> 0
+                else -> alarm.hour
+            }
+
+            set(Calendar.HOUR_OF_DAY, hour24)
+            set(Calendar.MINUTE, alarm.minute)
+        }
+        return calendar.timeInMillis
+    }
 
     private fun updateNoAlarmsText() {
         noCurrentAlarmsText.visibility = if (currentAlarmList.isEmpty()) View.VISIBLE else View.GONE
@@ -336,38 +366,48 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun updateCurrentAlarmsState(isStopped: Boolean) {
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (alarmSnapshot in snapshot.children) {
-                    val alarm = alarmSnapshot.getValue(AlarmData::class.java)
-                    if (alarm != null) {
-                        alarmSnapshot.ref.child("isActive").setValue(!isStopped)
-                    }
-                }
-                loadAlarmsFromFirebase()
+        database.child("isAllStopped").setValue(isStopped)
+            .addOnSuccessListener {
+                Log.d("MainActivity", "일괄 정지 상태 업데이트 성공: $isStopped")
+
+                // 🔹 상태 변경 즉시 푸쉬 알람 설정 업데이트
+                scheduleLightningPushAlarms()
             }
-            override fun onCancelled(error: DatabaseError) {}
-        })
+            .addOnFailureListener {
+                Log.e("MainActivity", "일괄 정지 상태 업데이트 실패")
+            }
     }
 
     // 라이트닝이 켜진 알람만 예약하는 함수
     @RequiresApi(Build.VERSION_CODES.S)
     private fun scheduleLightningPushAlarms() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // currentAlarmList와 allAlarmList에서 lightningEnabled가 true인 알람만 예약
-        for ((_, alarm) in currentAlarmList) {
-            if (!alarm.isDeleted && alarm.lightningEnabled) {
-                cancelPushAlarm(alarm, alarmManager)
-                schedulePushAlarm(alarm, alarmManager)
+
+        if (isAllStopped) {
+            // 🔹 현재 알림 리스트가 비어있지 않은 경우에만 취소 수행
+            if (currentAlarmList.isNotEmpty()) {
+                for ((_, alarm) in currentAlarmList) {
+                    cancelPushAlarm(alarm, alarmManager)
+                }
+                Log.d("MainActivity", "🚫 일괄 정지 ON → 모든 푸쉬 알람 취소됨")
+            } else {
+                Log.d("MainActivity", "🚫 일괄 정지 ON → 하지만 예정 알람이 없음")
             }
+            return
         }
-        for ((_, alarm) in allAlarmList) {
-            if (!alarm.isDeleted && alarm.lightningEnabled) {
-                cancelPushAlarm(alarm, alarmManager)
-                schedulePushAlarm(alarm, alarmManager)
+
+        // 🔹 일괄 정지가 OFF인 경우 → 푸쉬 알람 다시 예약
+        if (currentAlarmList.isNotEmpty()) {
+            for ((_, alarm) in currentAlarmList) {
+                if (!alarm.isDeleted && alarm.lightningEnabled) {
+                    schedulePushAlarm(alarm, alarmManager)
+                }
             }
+            Log.d("MainActivity", "✅ 일괄 정지 OFF → 푸쉬 알람 정상 작동")
+        } else {
+            Log.d("MainActivity", "✅ 일괄 정지 OFF → 하지만 예정 알람이 없음")
         }
     }
 
@@ -445,6 +485,30 @@ class MainActivity : ComponentActivity() {
         )
 
         Log.d("MainActivity", "자정 리셋 알람 예약됨: ${calendar.timeInMillis}")
+    }
+
+
+
+
+    private fun getAllStopStateFromFirebase() {
+        database.child("isAllStopped").addValueEventListener(object : ValueEventListener {
+            @RequiresApi(Build.VERSION_CODES.S)
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    isAllStopped = snapshot.getValue(Boolean::class.java) ?: false
+                    Log.d("MainActivity", "일괄 정지 상태 변경됨: $isAllStopped")
+
+                    // 변경된 정지 상태에 따라 푸쉬 알람 조정
+                    scheduleLightningPushAlarms()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "일괄 정지 상태 업데이트 오류: ${e.message}")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("MainActivity", "Firebase에서 isAllStopped 읽기 실패: ${error.message}")
+            }
+        })
     }
 
 }
