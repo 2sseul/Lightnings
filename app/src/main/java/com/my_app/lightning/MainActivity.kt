@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.wear.compose.materialcore.currentTimeMillis
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -32,9 +33,9 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var database: DatabaseReference
 
-    // 현재알림 영역: lightningEnabled가 true인 알람
+    // 예정알림 영역: lightningEnabled가 true인 알람
     private val currentAlarmList = mutableListOf<Pair<String, AlarmData>>()
-    // 전체알림 영역: lightningEnabled가 false인 알람
+    // 지난알림 영역: lightningEnabled가 false인 알람
     private val allAlarmList = mutableListOf<Pair<String, AlarmData>>()
 
     // 안내 문구 TextView (각 섹션)
@@ -68,16 +69,25 @@ class MainActivity : ComponentActivity() {
         noAllAlarmsText = findViewById(R.id.noAllAlarmsText)
 
         // RecyclerView 초기화
-        currentAlarmAdapter = AlarmAdapter(currentAlarmList)
+        currentAlarmAdapter = AlarmAdapter(this, currentAlarmList)
         currentAlarmRecyclerView.apply {
             adapter = currentAlarmAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
-        allAlarmAdapter = AlarmAdapter(allAlarmList)
+        allAlarmAdapter = AlarmAdapter(this, allAlarmList, isGrayColor = true)
         allAlarmRecyclerView.apply {
             adapter = allAlarmAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
+
+        allAlarmAdapter = AlarmAdapter(this, allAlarmList, isGrayColor = true)
+        allAlarmRecyclerView.apply {
+            adapter = allAlarmAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+        }
+
+        loadAlarmsFromFirebase()
+
 
         // 기타 UI 처리 (북마크, 추가 버튼, 스위치 등)
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
@@ -93,7 +103,6 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(this, SettingsAcivity::class.java))
         }
 
-
         scheduleMidnightReset()
 
         resetAlarmsAtMidnight()
@@ -106,6 +115,7 @@ class MainActivity : ComponentActivity() {
         val itemClickListener = object : AlarmAdapter.OnItemClickListener {
             override fun onLightningClick(alarm: AlarmData, position: Int) {
                 // 라이트닝 온/오프: lightningEnabled 필드를 토글
+                if (!alarm.lightningEnabled && alarm.isActive) return
                 val newLightningStatus = !alarm.lightningEnabled
                 Log.d("MainActivity", "라이트닝 토글: 이전=${alarm.lightningEnabled}, 이후=$newLightningStatus")
                 database.child(alarm.id).child("lightningEnabled").setValue(newLightningStatus)
@@ -204,6 +214,7 @@ class MainActivity : ComponentActivity() {
 
     private fun loadAlarmsFromFirebase() {
         database.addValueEventListener(object : ValueEventListener {
+            @SuppressLint("RestrictedApi")
             @RequiresApi(Build.VERSION_CODES.S)
             override fun onDataChange(snapshot: DataSnapshot) {
                 // hiddenAlarmIds 내용 로그 출력 (비어있어야 함)
@@ -216,6 +227,19 @@ class MainActivity : ComponentActivity() {
                 currentAlarmList.clear()
                 allAlarmList.clear()
 
+                // 현재 시간 가져오기
+                val now = Calendar.getInstance()
+                val currentTimeMills = now.timeInMillis
+
+                // 23시 59분까지만 예정알림에 두기
+                val futureLimit = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 23) // 오늘 23시
+                    set(Calendar.MINUTE, 59)      // 59분
+                    set(Calendar.SECOND, 59)      // 59초
+                    set(Calendar.MILLISECOND, 999)
+                }.timeInMillis
+
+
                 // 각 알람 데이터에 대해 처리
                 for (alarmSnapshot in snapshot.children) {
                     val alarm = alarmSnapshot.getValue(AlarmData::class.java)
@@ -224,6 +248,14 @@ class MainActivity : ComponentActivity() {
                         if (alarm.id.isEmpty()) {
                             alarm.id = alarmSnapshot.key ?: ""
                         }
+
+                        val alarmCalendar = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, if (alarm.amPm == "PM" && alarm.hour < 12) alarm.hour + 12 else alarm.hour)
+                            set(Calendar.MINUTE, alarm.minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        val alarmTimeMillis = alarmCalendar.timeInMillis
 
                         // 각 알람의 상태를 로그로 출력 (디버깅용)
                         Log.d("MainActivity", "알람 ${alarm.id}: isDeleted=${alarm.isDeleted}, hidden=${hiddenAlarmIds.contains(alarm.id)}, lightningEnabled=${alarm.lightningEnabled}")
@@ -234,12 +266,14 @@ class MainActivity : ComponentActivity() {
                             continue
                         }
 
-                        // lightningEnabled 값에 따라 목록 분류
-                        if (alarm.lightningEnabled) {
+                        if (alarm.lightningEnabled && alarmTimeMillis in currentTimeMillis()..futureLimit) {
+                            // 라이트닝이 켜져 있고, 현재시간 ~ 24시간 이내의 알람만 현재 알림 리스트에 추가
                             currentAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         } else {
+                            // 24시간이 지났거나, 라이트닝이 꺼져 있는 경우 전체 알림 리스트에 추가
                             allAlarmList.add(Pair(alarmSnapshot.key ?: "", alarm))
                         }
+
                     } else {
                         Log.d("MainActivity", "알람 데이터 매핑 실패: ${alarmSnapshot.value}")
                     }

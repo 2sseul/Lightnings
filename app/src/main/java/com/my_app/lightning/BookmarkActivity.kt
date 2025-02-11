@@ -41,7 +41,7 @@ class BookmarkActivity : ComponentActivity() {
         recyclerView = findViewById(R.id.currentAlarmRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         // alarmList를 그대로 전달하여 어댑터와 공유
-        alarmAdapter = AlarmAdapter(alarmList)
+        alarmAdapter = AlarmAdapter(this, alarmList, isGrayColor = true)
         recyclerView.adapter = alarmAdapter
 
         // 단 하나의 ItemTouchHelper 부착 (중복 부착 제거)

@@ -24,7 +24,6 @@ class AddList : ComponentActivity() {
         val cancleBtn: TextView = findViewById(R.id.cancle)
         val saveBtn: Button = findViewById(R.id.saveBtn)
         val timePicker: TimePicker = findViewById(R.id.timePicker)
-        val lightningSwitch: Switch = findViewById(R.id.lightning_switch_btn)
         val remindSwitch: Switch = findViewById(R.id.remind_switch_btn)
         val detailsSwitch: Switch = findViewById(R.id.details_switch_btn)
         val detailsEditText: EditText = findViewById(R.id.details_editText)
@@ -43,7 +42,6 @@ class AddList : ComponentActivity() {
         saveBtn.setOnClickListener {
             val hour = timePicker.hour
             val minute = timePicker.minute
-            val lightningEnabled = lightningSwitch.isChecked
             val remindEnabled = remindSwitch.isChecked
             val detailsEnabled = detailsSwitch.isChecked
             val detailsText = detailsEditText.text.toString()
@@ -54,15 +52,20 @@ class AddList : ComponentActivity() {
             val alarmTimeMillis = getAlarmTimeMillis(formattedHour, minute, amPm)
             val currentTimeMillis = System.currentTimeMillis()
 
-            // 알람 시간이 현재 시간보다 과거라면 자동으로 "다음 날"로 설정
-            val adjustedAlarmTimeMillis = if (alarmTimeMillis <= currentTimeMillis) {
-                alarmTimeMillis + 24 * 60 * 60 * 1000 // 24시간 추가
-            } else {
-                alarmTimeMillis
-            }
+            // 🔹 오늘 23:59:59까지를 기준으로 futureLimit 설정
+            val futureLimit = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 23) // 오늘 23시
+                set(Calendar.MINUTE, 59)      // 59분
+                set(Calendar.SECOND, 59)      // 59초
+                set(Calendar.MILLISECOND, 999)
+            }.timeInMillis
+
+            // "현재시간 ~ 오늘 24시 이전"이면 예정알람으로 추가
+            // 그 외(현재시간 이전이거나 내일 이후)는 전체알람으로 추가
+            val lightningEnabled = alarmTimeMillis in currentTimeMillis..futureLimit
 
             saveDataToFirebase(
-                formattedHour, minute, amPm, lightningEnabled, remindEnabled, detailsEnabled, detailsText, adjustedAlarmTimeMillis
+                formattedHour, minute, amPm, lightningEnabled, remindEnabled, detailsEnabled, detailsText, alarmTimeMillis
             )
 
             startActivity(Intent(this@AddList, MainActivity::class.java))
