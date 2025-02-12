@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
+import java.util.Calendar
 
 class AlarmEditActivity : AppCompatActivity() {
 
@@ -54,7 +55,7 @@ class AlarmEditActivity : AppCompatActivity() {
             updateAlarm()
         }
 
-        // 🔹 내용 스위치 상태 변경 이벤트 추가
+        // 내용 스위치 상태 변경 이벤트 추가
         detailsSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 detailsEditText.visibility = View.VISIBLE // Switch가 ON이면 EditText 보이기
@@ -81,7 +82,7 @@ class AlarmEditActivity : AppCompatActivity() {
                     detailsEditText.setText(alarm.detailsText)
                     remindSwitch.isChecked = alarm.remindEnabled
 
-                    // 🔹 스위치 초기 상태 설정
+                    // 스위치 초기 상태 설정
                     if (alarm.detailsText.isNotEmpty()) {
                         detailsSwitch.isChecked = true
                         detailsEditText.visibility = View.VISIBLE
@@ -138,13 +139,31 @@ class AlarmEditActivity : AppCompatActivity() {
             }
         }
 
+        // 현재 시간과 비교하여 lightningEnabled 설정
+        val calendar = Calendar.getInstance()
+        val currentHour = calendar.get(Calendar.HOUR_OF_DAY) // 24시간 형식
+        val currentMinute = calendar.get(Calendar.MINUTE)
+
+        val alarmHour24 = when {
+            newAmPm == "PM" && newHour != 12 -> newHour + 12
+            newAmPm == "AM" && newHour == 12 -> 0
+            else -> newHour
+        }
+
+        val lightningEnabled = if (alarmHour24 > currentHour || (alarmHour24 == currentHour && newMinute > currentMinute)) {
+            true // 현재 시간 이후라면 예정 알람
+        } else {
+            false // 현재 시간 이전이면 지난 알람
+        }
+
         val updateMap = mapOf(
             "detailsText" to newDetails,
             "detailsEnabled" to newDetailsEnabled,
             "remindEnabled" to newRemindEnabled,
             "hour" to newHour,
             "minute" to newMinute,
-            "amPm" to newAmPm
+            "amPm" to newAmPm,
+            "lightningEnabled" to lightningEnabled // ⚡ 라이트닝 상태 업데이트
         )
 
         uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
@@ -161,4 +180,5 @@ class AlarmEditActivity : AppCompatActivity() {
                 Toast.makeText(this, "알람 업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
             }
     }
+
 }
