@@ -4,10 +4,12 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.text.font.FontVariation
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -40,8 +42,10 @@ class BookmarkActivity : ComponentActivity() {
         // RecyclerView 초기화
         recyclerView = findViewById(R.id.currentAlarmRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        alarmAdapter = AlarmAdapter(this, alarmList, isGrayColor = true)
+        alarmAdapter = AlarmAdapter(this, alarmList)
         recyclerView.adapter = alarmAdapter
+
+        alarmAdapter.setOnItemClickListener(itemClickListener)
 
         attachSwipeHandler(recyclerView)
 
@@ -55,6 +59,27 @@ class BookmarkActivity : ComponentActivity() {
 
         loadBookmarkedAlarms()
         resetBookmarkedAlarmsAtMidnight() // 자정 이후 라이트닝 자동 ON 설정
+    }
+
+    // 아이템 클릭 이벤트 처리 (토글 기능)
+    private val itemClickListener = object : AlarmAdapter.OnItemClickListener {
+        override fun onLightningClick(alarm: AlarmData, position: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onBookmarkClick(alarm: AlarmData, position: Int) {
+            val newBookmarkStatus = !alarm.isBookmarked
+            Log.d("BookmarkActivity", "북마크 토글: 이전=${alarm.isBookmarked}, 이후=$newBookmarkStatus")
+            database.child(alarm.id).child("isBookmarked").setValue(newBookmarkStatus)
+                .addOnSuccessListener { loadBookmarkedAlarms() }
+                .addOnFailureListener { loadBookmarkedAlarms() }
+        }
+
+        override fun onItemClick(alarm: AlarmData, position: Int) {
+            val intent = Intent(this@BookmarkActivity, AlarmEditActivity::class.java)
+            intent.putExtra("alarmId", alarm.id)
+            startActivity(intent)
+        }
     }
 
     private fun attachSwipeHandler(recyclerView: RecyclerView) {
