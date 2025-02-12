@@ -8,7 +8,7 @@
     android:background="#F5F5F5"
     android:fitsSystemWindows="true">
 
-    <!-- 상단 제목 영역 (예: "설정") -->
+    <!-- 설정 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 콘텐츠 영역: ScrollView는 남은 공간을 모두 사용 -->
+    <!-- 콘텐츠 영역 -->
     <ScrollView
         android:id="@+id/scrollViewContent"
         android:layout_width="match_parent"
@@ -91,6 +91,7 @@
 
             <!-- 설명서 항목 -->
             <LinearLayout
+                android:id="@+id/manualSection"
                 android:layout_width="350dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp">
