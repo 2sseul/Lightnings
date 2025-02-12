@@ -5,6 +5,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -17,6 +18,7 @@ import android.widget.Switch
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +30,9 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.util.Calendar
+import android.Manifest
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : ComponentActivity() {
 
@@ -56,6 +61,9 @@ class MainActivity : ComponentActivity() {
 
     private var isAllStopped = false // 일괄 정지 상태 저장 변수
 
+    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
+
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -87,6 +95,20 @@ class MainActivity : ComponentActivity() {
             adapter = allAlarmAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
+
+        // **푸쉬 알림 권한 요청 런처 등록**
+        notificationPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                Log.d("MainActivity", "✅ 푸쉬 알림 권한 허용됨")
+            } else {
+                Log.w("MainActivity", "🚫 푸쉬 알림 권한 거부됨")
+                showPermissionDeniedMessage()
+            }
+        }
+
+        checkAndRequestNotificationPermission()
 
         loadAlarmsFromFirebase()
 
@@ -139,6 +161,33 @@ class MainActivity : ComponentActivity() {
         }
         currentAlarmAdapter.setOnItemClickListener(itemClickListener)
         allAlarmAdapter.setOnItemClickListener(itemClickListener)
+    }
+
+    // 푸쉬 알림 권한 확인 및 요청
+    private fun checkAndRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13(API 33) 이상만 적용
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                // 권한이 허용되지 않은 경우 사용자에게 요청
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    //사용자가 권한 거부했을 때 메시지
+    private fun showPermissionDeniedMessage() {
+        runOnUiThread {
+            android.widget.Toast.makeText(
+                this,
+                "푸쉬 알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    companion object {
+        private const val REQUEST_NOTIFICATION_PERMISSION = 1001
     }
 
     // API 31 이상에서만 onResume, onDestroy에서 알람 예약 (테스트 시 에뮬레이터 API 버전 확인)
