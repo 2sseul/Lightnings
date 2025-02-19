@@ -1,8 +1,63 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<!-- toggle.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@android:color/transparent"
+    android:clickable="true"
+    android:focusable="true"
+    >
 
+    <LinearLayout
+        android:id="@+id/popupLayout"
+        android:layout_width="280dp"
+        android:layout_height="100dp"
+        android:background="@drawable/toggle_radius"
+        android:orientation="vertical"
+        android:paddingTop="18dp"
+        android:paddingBottom="18dp"
+        android:paddingRight="12dp"
+        android:paddingLeft="12dp"
+        android:focusable="true">
 
-</FrameLayout>
+        <!-- "천둥소리란?" 영역 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:textSize="12dp"
+                android:text="천둥소리란?"
+                android:textColor="@color/gray3"
+                android:layout_marginRight="5dp"/>
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="center"
+                android:src="@drawable/thunder_emoji"/>
+        </LinearLayout>
+
+        <!-- 설명 문구들 -->
+        <LinearLayout
+            android:layout_width="240dp"
+            android:layout_height="21dp"
+            android:layout_marginBottom="3dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="30초동안 진동이 5초 간격으로 울립니다."
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12dp"
+            android:text="징..징..징..징"
+            android:textColor="@color/gray" />
+    </LinearLayout>
+</LinearLayout>
