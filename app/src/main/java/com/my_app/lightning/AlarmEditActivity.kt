@@ -2,6 +2,7 @@ package com.my_app.lightning
 
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
@@ -19,6 +20,10 @@ class AlarmEditActivity : AppCompatActivity() {
     private lateinit var detailsSwitch: Switch
     private lateinit var remindSwitch: Switch
     private lateinit var timePicker: TimePicker
+    private lateinit var detailsLayout: LinearLayout
+    private lateinit var descriptionBtn: Button
+
+    private var loadedDetailsText: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +40,11 @@ class AlarmEditActivity : AppCompatActivity() {
         cancelTextView = findViewById(R.id.cancle)
         saveButton = findViewById(R.id.saveBtn)
         detailsEditText = findViewById(R.id.details_editText)
+        detailsLayout = findViewById(R.id.details)
         detailsSwitch = findViewById(R.id.details_switch_btn)
         remindSwitch = findViewById(R.id.remind_switch_btn)
         timePicker = findViewById(R.id.timePicker)
+        descriptionBtn = findViewById(R.id.remind_des_btn)
 
         // TimePicker를 24시간 형식이 아닌 AM/PM 형식으로 설정
         timePicker.setIs24HourView(false)
@@ -58,12 +65,18 @@ class AlarmEditActivity : AppCompatActivity() {
         // 내용 스위치 상태 변경 이벤트 추가
         detailsSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                detailsEditText.visibility = View.VISIBLE // Switch가 ON이면 EditText 보이기
+                detailsLayout.visibility = View.VISIBLE
+                detailsEditText.setText(loadedDetailsText)
                 detailsEditText.requestFocus() // EditText에 포커스 주기
             } else {
-                detailsEditText.visibility = View.GONE // Switch가 OFF이면 EditText 숨기기
+                detailsLayout.visibility = View.GONE
+                loadedDetailsText = detailsEditText.text.toString()
                 detailsEditText.text.clear() // 내용 초기화
             }
+        }
+
+        descriptionBtn.setOnClickListener{
+            showRemindDialog()
         }
     }
 
@@ -78,17 +91,20 @@ class AlarmEditActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val alarm = snapshot.getValue(AlarmData::class.java)
                 if (alarm != null) {
+                    loadedDetailsText = alarm.detailsText
+
                     // EditText에 기존 내용을 채움
                     detailsEditText.setText(alarm.detailsText)
                     remindSwitch.isChecked = alarm.remindEnabled
 
                     // 스위치 초기 상태 설정
                     if (alarm.detailsText.isNotEmpty()) {
+                        detailsEditText.setText(alarm.detailsText)
                         detailsSwitch.isChecked = true
-                        detailsEditText.visibility = View.VISIBLE
+                        detailsLayout.visibility = View.VISIBLE
                     } else {
                         detailsSwitch.isChecked = false
-                        detailsEditText.visibility = View.GONE
+                        detailsLayout.visibility = View.GONE
                     }
 
                     // 시간 설정 (오전/오후, 시, 분 반영)
@@ -181,4 +197,35 @@ class AlarmEditActivity : AppCompatActivity() {
             }
     }
 
+    private fun showRemindDialog() {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.toggle)
+
+        // 루트/팝업 레이아웃 참조
+        val rootLayout = dialog.findViewById<LinearLayout>(R.id.rootLayout)
+        val popupLayout = dialog.findViewById<LinearLayout>(R.id.popupLayout)
+
+        // 루트 영역 클릭 시 -> 다이얼로그 닫기
+        rootLayout.setOnClickListener {
+            dialog.dismiss()
+        }
+        // 팝업 영역 클릭 시 -> 이벤트 소비 (닫히지 않음)
+        popupLayout.setOnClickListener {
+        }
+
+        // 화면 전체를 MATCH_PARENT로 확장
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
+
+        // 배경을 50% 투명 검정으로 설정
+        dialog.window?.setBackgroundDrawable(
+            android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.parseColor("#50000000")
+            )
+        )
+
+        dialog.show()
+    }
 }
