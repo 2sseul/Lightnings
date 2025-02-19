@@ -30,6 +30,8 @@ class BookmarkActivity : ComponentActivity() {
 
     private lateinit var noBookmarkText:TextView
 
+    private var isBookmarkSelected = true // 기본적으로 선택된 상태로 가정
+
     private val alarmList = mutableListOf<Pair<String, AlarmData>>() // 알람 리스트
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +50,20 @@ class BookmarkActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         alarmAdapter = AlarmAdapter(this, alarmList)
         recyclerView.adapter = alarmAdapter
+
+        val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
+
+        // 기본 아이콘 설정
+        bookmarkIcon.setImageResource(R.drawable.light_bookmark_click)
+
+        bookmarkIcon.setOnClickListener {
+            isBookmarkSelected = !isBookmarkSelected
+            if (isBookmarkSelected) {
+                bookmarkIcon.setImageResource(R.drawable.light_bookmark_click) // 클릭된 상태
+            } else {
+                bookmarkIcon.setImageResource(R.drawable.light_bookmark) // 기본 상태
+            }
+        }
 
         noBookmarkText = findViewById<TextView>(R.id.noBookmarkText)
 
