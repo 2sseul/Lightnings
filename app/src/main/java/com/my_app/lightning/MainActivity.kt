@@ -31,6 +31,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.util.Calendar
 import android.Manifest
+import android.util.TypedValue
+import android.widget.LinearLayout
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -61,6 +63,13 @@ class MainActivity : ComponentActivity() {
 
     private var isAllStopped = false // 일괄 정지 상태 저장 변수
 
+    private var isExpanded = false
+
+    private lateinit var currentAlarmFrame: View
+    private lateinit var moreButton: LinearLayout
+    private lateinit var moreButtonText: TextView
+    private lateinit var moreButtonIcon: ImageView
+
     private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -77,6 +86,12 @@ class MainActivity : ComponentActivity() {
         allAlarmRecyclerView = findViewById(R.id.allAlarmRecyclerView)
         noCurrentAlarmsText = findViewById(R.id.noCurrentAlarmsText)
         noAllAlarmsText = findViewById(R.id.noAllAlarmsText)
+
+        currentAlarmFrame = findViewById(R.id.currentAlarmFrame)
+
+        moreButton = findViewById(R.id.moreButton)
+        moreButtonText = moreButton.findViewById(R.id.moreButtonText)
+        moreButtonIcon = moreButton.findViewById(R.id.moreButtonIcon)
 
         // RecyclerView 초기화
         currentAlarmAdapter = AlarmAdapter(this, currentAlarmList)
@@ -96,7 +111,7 @@ class MainActivity : ComponentActivity() {
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
 
-        // **푸쉬 알림 권한 요청 런처 등록**
+        // 푸쉬 알림 권한 요청 런처 등록
         notificationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
@@ -111,7 +126,6 @@ class MainActivity : ComponentActivity() {
         checkAndRequestNotificationPermission()
 
         loadAlarmsFromFirebase()
-
 
         // 기타 UI 처리 (북마크, 추가 버튼, 스위치 등)
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
@@ -161,7 +175,33 @@ class MainActivity : ComponentActivity() {
         }
         currentAlarmAdapter.setOnItemClickListener(itemClickListener)
         allAlarmAdapter.setOnItemClickListener(itemClickListener)
+
+        moreButton.setOnClickListener {
+            isExpanded = !isExpanded
+            toggleCurrentAlarmsHeight(isExpanded)
+        }
     }
+
+    private fun toggleCurrentAlarmsHeight(expanded: Boolean) {
+        if (expanded) {
+            // wrap_content로 변경
+            currentAlarmFrame.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
+            moreButtonText.text = "접기"
+            moreButtonIcon.setImageResource(R.drawable.arrow_top)
+        } else {
+            // 다시 280dp 고정
+            val px = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                280f,
+                resources.displayMetrics
+            ).toInt()
+            currentAlarmFrame.layoutParams.height = px
+            moreButtonText.text = "더보기"
+            moreButtonIcon.setImageResource(R.drawable.arrow_bottom)
+        }
+        currentAlarmFrame.requestLayout()
+    }
+
 
     // 푸쉬 알림 권한 확인 및 요청
     private fun checkAndRequestNotificationPermission() {
@@ -342,6 +382,13 @@ class MainActivity : ComponentActivity() {
                 currentAlarmAdapter.notifyDataSetChanged()
                 allAlarmAdapter.notifyDataSetChanged()
                 updateNoAlarmsText()
+
+                // 현재 알람이 3개 이상이면 '더보기' 버튼 보이기
+                if (currentAlarmList.size > 3) {
+                    moreButton.visibility = View.VISIBLE
+                } else {
+                    moreButton.visibility = View.GONE
+                }
 
                 // 라이트닝이 켜진 알람만 예약 (예약 함수는 별도로 구현)
                 scheduleLightningPushAlarms()
