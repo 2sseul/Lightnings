@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.FirebaseDatabase
+import java.util.Calendar
 
 class AlarmAdapter(private val context : Context, private val alarmList: MutableList<Pair<String, AlarmData>>, private val isGrayColor: Boolean = false) :
 
@@ -36,6 +37,8 @@ class AlarmAdapter(private val context : Context, private val alarmList: Mutable
         val bookmarkIcon: ImageView = itemView.findViewById(R.id.bookmark_icon)
 
         init {
+            checkAndUpdateLightningStatus()
+
             lightningIcon.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
@@ -72,6 +75,20 @@ class AlarmAdapter(private val context : Context, private val alarmList: Mutable
 
     override fun onBindViewHolder(holder: AlarmViewHolder, position: Int) {
         val (alarmId, alarm) = alarmList[position]
+
+        // 현재 시간과 비교하여 지난 알람인지 확인
+        val currentTime = Calendar.getInstance()
+        val alarmTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, if (alarm.amPm == "PM" && alarm.hour < 12) alarm.hour + 12 else alarm.hour)
+            set(Calendar.MINUTE, alarm.minute)
+        }
+
+        // 시간이 지난 경우 lightningEnabled를 false로 업데이트
+        if (alarmTime.before(currentTime) && alarm.lightningEnabled) {
+            alarm.lightningEnabled = false
+            updateLightningStatusInFirebase(alarmId, false)
+        }
+
         // 시간 표시 (24시간 형식 변환)
         val displayHour = when {
             alarm.amPm == "PM" && alarm.hour != 12 -> alarm.hour + 12
@@ -134,23 +151,44 @@ class AlarmAdapter(private val context : Context, private val alarmList: Mutable
         alarmList.clear()
         alarmList.addAll(newList)
         notifyDataSetChanged()
+
+        checkAndUpdateLightningStatus()
     }
 
-    // 스와이프 삭제 시 호출: Firebase의 isDeleted를 true로 업데이트 후, 로컬 리스트에서도 제거
-    fun removeItem(position: Int) {
-        uniqueUserId = UniqueIDManager.getInstance(context).getUniqueUserId()
-        if (position in 0 until alarmList.size) {
-            val (alarmId, _) = alarmList[position]
-            FirebaseDatabase.getInstance().reference
-                .child("alarms")
-                .child(uniqueUserId)
-                .child(alarmId)
-                .child("isDeleted")
-                .setValue(true)
-                .addOnSuccessListener {
-                    alarmList.removeAt(position)
-                    notifyDataSetChanged()
+    // Firebase에서 기존 데이터를 업데이트하는 메서드
+    private fun updateLightningStatusInFirebase(alarmId: String, status: Boolean) {
+        FirebaseDatabase.getInstance().reference
+            .child("alarms")
+            .child(uniqueUserId)
+            .child(alarmId)
+            .child("lightningEnabled")
+            .setValue(status)
+    }
+
+    // Firebase에서 모든 알람을 가져와 지난 알람을 업데이트하는 메서드
+    fun checkAndUpdateLightningStatus() {
+        val databaseRef = FirebaseDatabase.getInstance().reference
+            .child("alarms")
+            .child(uniqueUserId)
+
+        databaseRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val currentTime = Calendar.getInstance()
+
+                snapshot.children.forEach { childSnapshot ->
+                    val alarmId = childSnapshot.key ?: return@forEach
+                    val alarm = childSnapshot.getValue(AlarmData::class.java) ?: return@forEach
+
+                    val alarmTime = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, if (alarm.amPm == "PM" && alarm.hour < 12) alarm.hour + 12 else alarm.hour)
+                        set(Calendar.MINUTE, alarm.minute)
+                    }
+
+                    if (alarmTime.before(currentTime) && alarm.lightningEnabled) {
+                        updateLightningStatusInFirebase(alarmId, false)
+                    }
                 }
+            }
         }
     }
 }
