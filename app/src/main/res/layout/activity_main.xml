@@ -65,7 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="아래의 플러스 버튼으로\n알림을 지정하세요."
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textColor="@android:color/darker_gray"
             android:gravity="center"
             android:visibility="gone"/>

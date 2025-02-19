@@ -7,7 +7,9 @@ import android.graphics.drawable.ColorDrawable
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.text.font.FontVariation
 import androidx.core.content.ContextCompat
@@ -25,6 +27,8 @@ class BookmarkActivity : ComponentActivity() {
     private lateinit var btnAdd: ImageView
 
     private lateinit var uniqueUserId: String
+
+    private lateinit var noBookmarkText:TextView
 
     private val alarmList = mutableListOf<Pair<String, AlarmData>>() // 알람 리스트
 
@@ -44,6 +48,8 @@ class BookmarkActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         alarmAdapter = AlarmAdapter(this, alarmList)
         recyclerView.adapter = alarmAdapter
+
+        noBookmarkText = findViewById<TextView>(R.id.noBookmarkText)
 
         alarmAdapter.setOnItemClickListener(itemClickListener)
 
@@ -160,13 +166,22 @@ class BookmarkActivity : ComponentActivity() {
                         }
                     }
                 }
-1
+
                 // 시간순 정렬: AM/PM 변환 후 24시간 기준 정렬
                 val sortedList = newList.sortedWith(compareBy(
                     { if (it.second.amPm == "PM" && it.second.hour != 12) it.second.hour + 12 else if (it.second.amPm == "AM" && it.second.hour == 12) 0 else it.second.hour },
                     { it.second.minute }
                 ))
+
+                // RecyclerView 업데이트
                 alarmAdapter.updateData(sortedList.toMutableList())
+
+                // 북마크된 알람이 없으면 문구 표시, 있으면 숨김
+                if (sortedList.isEmpty()) {
+                    noBookmarkText.visibility = View.VISIBLE
+                } else {
+                    noBookmarkText.visibility = View.GONE
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -174,6 +189,7 @@ class BookmarkActivity : ComponentActivity() {
             }
         })
     }
+
 
     private fun resetBookmarkedAlarmsAtMidnight() {
         val calendar = Calendar.getInstance()
