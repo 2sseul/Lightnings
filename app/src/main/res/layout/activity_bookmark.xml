@@ -27,43 +27,22 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center|left"
-                android:text="즐겨찾기"
+                android:text="북마크"
                 android:textColor="#000000"
                 android:textSize="18dp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <FrameLayout
+    <!-- 북마크된 알람 목록 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/currentAlarmRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="20dp">
-
-        <!-- 북마크된 알람이 없을 때 표시할 문구 -->
-        <TextView
-            android:id="@+id/noBookmarkText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="즐겨찾기로 지정된 알림은\n다음날 자동 예약됩니다"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            android:gravity="center"
-            android:visibility="gone"
-            android:padding="20dp"
-            android:layout_gravity="center"/>
-
-        <!-- 북마크된 알람 목록 -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/currentAlarmRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:nestedScrollingEnabled="false"
-            android:scrollbars="vertical"/>
-    </FrameLayout>
-
-
+        android:nestedScrollingEnabled="false"
+        android:scrollbars="none"
+        android:layout_marginTop="20dp" />
 
     <!-- 하단바 -->
     <include
