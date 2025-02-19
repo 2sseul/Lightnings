@@ -23,6 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val contentTitle = intent.getStringExtra("contentText") ?: "알람이 울립니다!"
         val alarmId = intent.getStringExtra("alarmId") // 예약 시 전달한 alarmId
 
+        //uniqueUserId = "test_user"
         uniqueUserId = UniqueIDManager.getInstance(context).getUniqueUserId()
 
         Log.d("AlarmReceiver", "🚀 Alarm triggered: $contentTitle, alarmId: $alarmId")
