@@ -14,6 +14,14 @@ class SettingsAcivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.setting)
 
+        val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
+        val settingsIcon = findViewById<ImageView>(R.id.settings)
+
+        // 현재 화면이 '설정' 페이지이므로 설정 아이콘은 클릭 상태로
+        settingsIcon.setImageResource(R.drawable.light_settings_click)
+        // 북마크 아이콘은 기본 상태로
+        bookmarkIcon.setImageResource(R.drawable.light_bookmark)
+
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
             startActivity(Intent(this, BookmarkActivity::class.java))
         }
