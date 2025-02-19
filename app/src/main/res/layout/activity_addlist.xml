@@ -23,10 +23,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_gravity="center">
+
                 <TextView
                     android:id="@+id/cancle"
-                    android:layout_width="30dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="40dp"
+                    android:layout_height="32dp"
                     android:gravity="center|left"
                     android:text="취소"
                     android:textColor="#000000"
@@ -231,14 +232,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:id="@+id/details">
 
         <EditText
             android:id="@+id/details_editText"
-            android:layout_width="350dp"
+            android:layout_width="320dp"
             android:layout_height="70dp"
             android:background="@drawable/edittext_radius"
-            android:visibility="gone"/>  <!-- 초기에는 숨김 상태 -->
+            android:textSize="16sp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:maxLength="20"
+            android:ellipsize="end"
+            android:singleLine="true"/>
 
+        <TextView
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/gray"
+            android:text="20자 이내로 작성해주세요."
+            android:layout_marginTop="5dp"
+            android:gravity="left"/>
     </LinearLayout>
 </LinearLayout>
