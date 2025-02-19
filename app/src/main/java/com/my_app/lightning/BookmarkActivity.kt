@@ -7,9 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.text.font.FontVariation
 import androidx.core.content.ContextCompat
@@ -28,15 +26,19 @@ class BookmarkActivity : ComponentActivity() {
 
     private lateinit var uniqueUserId: String
 
-    private lateinit var noBookmarkText:TextView
-
-    private var isBookmarkSelected = true // 기본적으로 선택된 상태로 가정
-
     private val alarmList = mutableListOf<Pair<String, AlarmData>>() // 알람 리스트
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookmark)
+
+        val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
+        val settingsIcon = findViewById<ImageView>(R.id.settings)
+
+        // 현재 화면이 '북마크' 페이지이므로 북마크 아이콘은 클릭 상태로
+        bookmarkIcon.setImageResource(R.drawable.light_bookmark_click)
+        // 설정 아이콘은 기본 상태로
+        settingsIcon.setImageResource(R.drawable.light_settings)
 
         uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
 
@@ -50,22 +52,6 @@ class BookmarkActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         alarmAdapter = AlarmAdapter(this, alarmList)
         recyclerView.adapter = alarmAdapter
-
-        val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
-
-        // 기본 아이콘 설정
-        bookmarkIcon.setImageResource(R.drawable.light_bookmark_click)
-
-        bookmarkIcon.setOnClickListener {
-            isBookmarkSelected = !isBookmarkSelected
-            if (isBookmarkSelected) {
-                bookmarkIcon.setImageResource(R.drawable.light_bookmark_click) // 클릭된 상태
-            } else {
-                bookmarkIcon.setImageResource(R.drawable.light_bookmark) // 기본 상태
-            }
-        }
-
-        noBookmarkText = findViewById<TextView>(R.id.noBookmarkText)
 
         alarmAdapter.setOnItemClickListener(itemClickListener)
 
@@ -188,16 +174,7 @@ class BookmarkActivity : ComponentActivity() {
                     { if (it.second.amPm == "PM" && it.second.hour != 12) it.second.hour + 12 else if (it.second.amPm == "AM" && it.second.hour == 12) 0 else it.second.hour },
                     { it.second.minute }
                 ))
-
-                // RecyclerView 업데이트
                 alarmAdapter.updateData(sortedList.toMutableList())
-
-                // 북마크된 알람이 없으면 문구 표시, 있으면 숨김
-                if (sortedList.isEmpty()) {
-                    noBookmarkText.visibility = View.VISIBLE
-                } else {
-                    noBookmarkText.visibility = View.GONE
-                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -205,7 +182,6 @@ class BookmarkActivity : ComponentActivity() {
             }
         })
     }
-
 
     private fun resetBookmarkedAlarmsAtMidnight() {
         val calendar = Calendar.getInstance()
