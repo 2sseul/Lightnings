@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Build
 import android.os.Handler
@@ -19,35 +20,43 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
 
-        // 알람 내용 및 고유 ID 가져오기
-        val contentTitle = intent.getStringExtra("contentText") ?: "알람이 울립니다!"
-        val alarmId = intent.getStringExtra("alarmId") // 예약 시 전달한 alarmId
+        // SharedPreferences에서 전역 정지 상태를 동기적으로 읽어옴
+        val sharedPref: SharedPreferences = context.getSharedPreferences("global_settings", Context.MODE_PRIVATE)
+        val isAllStoppedLocal = sharedPref.getBoolean("isAllStopped", false)
 
-        //uniqueUserId = "test_user"
+        // 알람 내용 및 alarmId 가져오기
+        val contentTitle = intent.getStringExtra("contentText") ?: "알람이 울립니다!"
+        val alarmId = intent.getStringExtra("alarmId")
         uniqueUserId = UniqueIDManager.getInstance(context).getUniqueUserId()
 
-        Log.d("AlarmReceiver", "🚀 Alarm triggered: $contentTitle, alarmId: $alarmId")
+        Log.d("AlarmReceiver", "Alarm triggered: $contentTitle, alarmId: $alarmId")
 
-        // 알람 ID를 해시코드로 변환하여 고유한 Notification ID 생성
-        val notificationId = alarmId?.hashCode() ?: System.currentTimeMillis().toInt()
-
-        // Firebase에서 lightningEnabled 업데이트 (알람이 울린 후)
+        // 알람이 울렸으므로 Firebase에서 해당 알람의 lightningEnabled를 false로 업데이트
         if (alarmId != null) {
             val dbRef = FirebaseDatabase.getInstance().reference
                 .child("alarms")
                 .child(uniqueUserId)
                 .child(alarmId)
-
             dbRef.child("lightningEnabled").setValue(false)
                 .addOnSuccessListener {
-                    Log.d("AlarmReceiver", "✅ alarmId $alarmId → lightningEnabled 업데이트 완료")
+                    Log.d("AlarmReceiver", "alarmId $alarmId → lightningEnabled 업데이트 완료")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("AlarmReceiver", "❌ alarmId $alarmId → lightningEnabled 업데이트 실패: ${e.message}")
+                    Log.e("AlarmReceiver", "alarmId $alarmId → lightningEnabled 업데이트 실패: ${e.message}")
                 }
         }
 
-        // 푸쉬 알림 생성
+        // 전역 정지 상태(true)일 경우 알람 소리 없이 lightning만 off 처리 후 브로드캐스트 전송
+        if (isAllStoppedLocal) {
+            Log.d("AlarmReceiver", "전역 정지 상태(true)이므로, Notification 표시 없이 lightning off만 처리")
+            val updateIntent = Intent("com.my_app.lightning.ALARM_UPDATED")
+            updateIntent.putExtra("alarmId", alarmId)
+            context.sendBroadcast(updateIntent)
+            return
+        }
+
+
+        // 전역 정지 상태가 false이면 정상적으로 푸쉬 알림 생성
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "alarm_channel"
@@ -66,18 +75,18 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notification) // 반드시 아이콘 리소스를 추가하세요.
+            .setSmallIcon(R.drawable.ic_notification) // 아이콘 리소스 필요
             .setContentTitle(contentTitle)
             .setAutoCancel(true)
             .build()
 
         // 알림 표시
-        notificationManager.notify(notificationId, notification)
+        notificationManager.notify(alarmId?.hashCode() ?: System.currentTimeMillis().toInt(), notification)
 
-        // 30초 후 푸쉬 알림 자동 삭제
+        // 30초 후 자동으로 Notification 삭제
         Handler(Looper.getMainLooper()).postDelayed({
-            notificationManager.cancel(notificationId)
-            Log.d("AlarmReceiver", "🕒 alarmId $alarmId → 푸쉬 알림 30초 후 자동 삭제 완료")
-        }, 30_000) // 30초 후 실행 (30,000 밀리초)
+            notificationManager.cancel(alarmId?.hashCode() ?: 0)
+            Log.d("AlarmReceiver", "alarmId $alarmId → Notification 30초 후 자동 삭제 완료")
+        }, 30_000)
     }
 }
