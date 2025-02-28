@@ -4,12 +4,10 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.text.font.FontVariation
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,7 +20,7 @@ class BookmarkActivity : ComponentActivity() {
     private lateinit var database: DatabaseReference
     private lateinit var recyclerView: RecyclerView
     private lateinit var alarmAdapter: AlarmAdapter
-    private lateinit var btnAdd: ImageView
+    private lateinit var home: ImageView
 
     private lateinit var uniqueUserId: String
 
@@ -30,15 +28,15 @@ class BookmarkActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bookmark)
+        setContentView(R.layout.layout_bookmark)
 
         val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
         val settingsIcon = findViewById<ImageView>(R.id.settings)
 
         // 현재 화면이 '북마크' 페이지이므로 북마크 아이콘은 클릭 상태로
-        bookmarkIcon.setImageResource(R.drawable.light_bookmark_click)
+        bookmarkIcon.setImageResource(R.drawable.icon_light_bookmark_click)
         // 설정 아이콘은 기본 상태로
-        settingsIcon.setImageResource(R.drawable.light_settings)
+        settingsIcon.setImageResource(R.drawable.icon_light_settings)
 
         uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
 
@@ -57,12 +55,14 @@ class BookmarkActivity : ComponentActivity() {
 
         attachSwipeHandler(recyclerView)
 
-        btnAdd = findViewById(R.id.btnAdd)
-        btnAdd.setOnClickListener {
-            startActivity(Intent(this, AddList::class.java))
+        home = findViewById(R.id.home)
+        home.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            overridePendingTransition(0, 0)
         }
         findViewById<ImageView>(R.id.settings).setOnClickListener {
-            startActivity(Intent(this, SettingsAcivity::class.java))
+            startActivity(Intent(this, SettingsActivity::class.java))
+            overridePendingTransition(0, 0)
         }
 
         loadBookmarkedAlarms()

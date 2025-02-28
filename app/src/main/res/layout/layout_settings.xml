@@ -122,7 +122,7 @@
                     <ImageView
                         android:layout_width="10dp"
                         android:layout_height="10dp"
-                        android:src="@drawable/go_content"
+                        android:src="@drawable/icon_go_content"
                         android:layout_marginBottom="2dp"
                         android:layout_gravity="center"/>
                 </LinearLayout>
@@ -133,7 +133,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="20dp"/>
-    <include
-        layout="@layout/bottom_navigation" />
 
+    <!-- 하단바 -->
+    <include
+        layout="@layout/bottom_navigation"
+        android:background="@color/gray" />
 </LinearLayout>
