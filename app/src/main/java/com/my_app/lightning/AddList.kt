@@ -109,10 +109,10 @@ class AddList : ComponentActivity() {
 
         database.child("alarms").child(uniqueUserId).push().setValue(alarmData)
             .addOnSuccessListener {
-                Toast.makeText(this, "알림이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "알림 저장 완료 ⚡️", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Toast.makeText(this, "저장 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "알림 저장 실패 ⚡️: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

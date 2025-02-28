@@ -11,7 +11,7 @@
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/alarm_list_radius"
+        android:background="@drawable/radius_alarm_list"
         android:padding="12dp"
         android:gravity="center_vertical">
 
@@ -22,7 +22,7 @@
             android:layout_height="52dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="8dp"
-            android:src="@drawable/ok_thunder" />
+            android:src="@drawable/icon_ok_thunder" />
 
         <!-- 텍스트 레이아웃 -->
         <LinearLayout
@@ -89,6 +89,6 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginRight="10dp"
-            android:src="@drawable/list_no_bookmark" />
+            android:src="@drawable/icon_list_no_bookmark" />
     </LinearLayout>
 </LinearLayout>

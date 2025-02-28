@@ -108,26 +108,26 @@ class AlarmAdapter(private val context : Context, private val alarmList: Mutable
         // 라이트닝 아이콘 설정
         if (!alarm.isActive && alarm.lightningEnabled) {
             // isActive가 false면서 lightningEnabled가 true인 경우
-            holder.lightningIcon.setImageResource(R.drawable.ok_thunder)
+            holder.lightningIcon.setImageResource(R.drawable.icon_ok_thunder)
             holder.lightningIcon.isEnabled = false
         } else if (isGrayColor) {
             // 전체 알람(지난 알람)의 경우 라이트닝 아이콘 비활성화 및 no_thunder 적용
-            holder.lightningIcon.setImageResource(R.drawable.no_thunder)
+            holder.lightningIcon.setImageResource(R.drawable.icon_no_thunder)
             if(!alarm.isActive && alarm.lightningEnabled){
-                holder.lightningIcon.setImageResource(R.drawable.ok_thunder)
+                holder.lightningIcon.setImageResource(R.drawable.icon_ok_thunder)
             }
             holder.lightningIcon.isEnabled = false
         } else {
             // 기본적으로 lightningEnabled에 따라 라이트닝 아이콘 변경
             holder.lightningIcon.setImageResource(
-                if (alarm.lightningEnabled) R.drawable.ok_thunder else R.drawable.no_thunder
+                if (alarm.lightningEnabled) R.drawable.icon_ok_thunder else R.drawable.icon_no_thunder
             )
             holder.lightningIcon.isEnabled = true
         }
 
         // 북마크 아이콘: isBookmarked 값에 따라 아이콘 변경
         holder.bookmarkIcon.setImageResource(
-            if (alarm.isBookmarked) R.drawable.list_bookmark else R.drawable.list_no_bookmark
+            if (alarm.isBookmarked) R.drawable.icon_list_bookmark else R.drawable.icon_list_no_bookmark
         )
 
         // 클릭 이벤트 설정

@@ -13,7 +13,7 @@
         android:id="@+id/popupLayout"
         android:layout_width="280dp"
         android:layout_height="100dp"
-        android:background="@drawable/toggle_radius"
+        android:background="@drawable/radius_toggle"
         android:orientation="vertical"
         android:paddingTop="18dp"
         android:paddingBottom="18dp"
@@ -37,7 +37,7 @@
                 android:layout_width="12dp"
                 android:layout_height="12dp"
                 android:layout_gravity="center"
-                android:src="@drawable/thunder_emoji"/>
+                android:src="@drawable/icon_thunder_emoji"/>
         </LinearLayout>
 
         <!-- 설명 문구들 -->

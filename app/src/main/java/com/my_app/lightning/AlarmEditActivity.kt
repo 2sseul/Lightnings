@@ -189,11 +189,10 @@ class AlarmEditActivity : AppCompatActivity() {
             .child(alarmId)
             .updateChildren(updateMap)
             .addOnSuccessListener {
-                Toast.makeText(this, "알람이 업데이트되었습니다.", Toast.LENGTH_SHORT).show()
-                finish()
+                Toast.makeText(this, "알림 업데이트 완료 ⚡️", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Toast.makeText(this, "알람 업데이트에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "알림 업데이트 실패 ⚡️", Toast.LENGTH_SHORT).show()
             }
     }
 

@@ -51,7 +51,7 @@
 
         <!-- SettingActivity -->
         <activity
-            android:name="com.my_app.lightning.SettingsAcivity"
+            android:name="com.my_app.lightning.SettingsActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 

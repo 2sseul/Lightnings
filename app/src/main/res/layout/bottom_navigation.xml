@@ -3,26 +3,25 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="80dp"
-    android:layout_gravity="bottom" >
+    android:layout_height="40dp"
+    android:layout_gravity="bottom"
+    android:background="#F5F5F5">
+    <!-- View 선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="top"
+        android:background="#EDEDED" />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="10dp">
-        <!-- View 선 -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_gravity="top"
-            android:background="#F5F5F5" />
+        android:layout_gravity="center">
 
         <!-- 하단바 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="bottom"
             android:orientation="horizontal">
 
             <ImageView
@@ -32,8 +31,15 @@
                 android:layout_weight="1"
                 android:layout_gravity="center"
                 android:layout_marginLeft="20dp"
-                android:layout_marginRight="50dp"
-                android:src="@drawable/light_bookmark" />
+                android:src="@drawable/icon_light_bookmark" />
+
+            <ImageView
+                android:id="@+id/home"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:src="@drawable/icon_home" />
 
             <ImageView
                 android:id="@+id/settings"
@@ -41,20 +47,19 @@
                 android:layout_height="24dp"
                 android:layout_weight="1"
                 android:layout_gravity="center"
-                android:layout_marginLeft="50dp"
                 android:layout_marginRight="20dp"
-                android:src="@drawable/light_settings" />
+                android:src="@drawable/icon_light_settings" />
         </LinearLayout>
     </FrameLayout>
-    <!-- + 버튼 -->
-    <ImageView
-        android:id="@+id/btnAdd"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10dp"
-        android:src="@drawable/add_botton"
-        android:background="@null"
-        android:translationZ="10dp"
-        android:elevation="10dp"/>
+<!--    &lt;!&ndash; + 버튼 &ndash;&gt;-->
+<!--    <ImageView-->
+<!--        android:id="@+id/btnAdd"-->
+<!--        android:layout_width="60dp"-->
+<!--        android:layout_height="60dp"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_marginBottom="10dp"-->
+<!--        android:src="@drawable/add_botton"-->
+<!--        android:background="@null"-->
+<!--        android:translationZ="10dp"-->
+<!--        android:elevation="10dp"/>-->
 </FrameLayout>
