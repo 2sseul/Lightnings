@@ -35,6 +35,7 @@ import java.util.Calendar
 import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import android.widget.FrameLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : ComponentActivity() {
@@ -129,15 +130,17 @@ class MainActivity : ComponentActivity() {
         // 기타 UI 처리
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
             startActivity(Intent(this, BookmarkActivity::class.java))
+            overridePendingTransition(0, 0)
         }
-        findViewById<ImageView>(R.id.btnAdd).setOnClickListener {
+        findViewById<FrameLayout>(R.id.btnAdd).setOnClickListener {
             startActivity(Intent(this, AddList::class.java))
         }
         findViewById<Switch>(R.id.switch_all_stop).setOnCheckedChangeListener { _, isChecked ->
             updateCurrentAlarmsState(isChecked)
         }
         findViewById<ImageView>(R.id.settings).setOnClickListener {
-            startActivity(Intent(this, SettingsAcivity::class.java))
+            startActivity(Intent(this, SettingsActivity::class.java))
+            overridePendingTransition(0, 0)
         }
 
         scheduleMidnightReset()
@@ -209,7 +212,7 @@ class MainActivity : ComponentActivity() {
         if (expanded) {
             currentAlarmFrame.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
             moreButtonText.text = "접기"
-            moreButtonIcon.setImageResource(R.drawable.arrow_top)
+            moreButtonIcon.setImageResource(R.drawable.icon_arrow_top)
         } else {
             val px = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
@@ -218,7 +221,7 @@ class MainActivity : ComponentActivity() {
             ).toInt()
             currentAlarmFrame.layoutParams.height = px
             moreButtonText.text = "더보기"
-            moreButtonIcon.setImageResource(R.drawable.arrow_bottom)
+            moreButtonIcon.setImageResource(R.drawable.icon_arrow_bottom)
         }
         currentAlarmFrame.requestLayout()
     }
