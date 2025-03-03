@@ -36,6 +36,7 @@ import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : ComponentActivity() {
@@ -127,7 +128,10 @@ class MainActivity : ComponentActivity() {
         // 전역 설정 값(isAllStopped) 동기화
         getAllStopStateFromFirebase()
 
+        getDontShowIntroStateFromFirebase()
+
         // 기타 UI 처리
+        findViewById<ImageView>(R.id.home).setImageResource(R.drawable.icon_light_home_click)
         findViewById<ImageView>(R.id.bookmark).setOnClickListener {
             startActivity(Intent(this, BookmarkActivity::class.java))
             overridePendingTransition(0, 0)
@@ -149,6 +153,26 @@ class MainActivity : ComponentActivity() {
 
         attachSwipeHandler(currentAlarmRecyclerView, currentAlarmAdapter, currentAlarmList)
         attachSwipeHandler(allAlarmRecyclerView, allAlarmAdapter, allAlarmList)
+
+        val introOverlay = findViewById<FrameLayout>(R.id.introOverlay)
+        val btnCloseIntro = findViewById<ImageButton>(R.id.btnCloseIntro)
+        val btnDontShowAgain = findViewById<LinearLayout>(R.id.btnDontShowAgain)
+
+        // '다시보지 않기' 버튼 클릭 시 Firebase에 값 저장
+        btnDontShowAgain.setOnClickListener {
+            settingsDatabase.child("dont_show_intro").setValue(true)
+                .addOnSuccessListener {
+                    Log.d("MainActivity", "'dont_show_intro' 저장 성공")
+                }
+                .addOnFailureListener {
+                    Log.e("MainActivity", "'dont_show_intro' 저장 실패: ${it.message}")
+                }
+        }
+
+        // X 버튼 클릭 시 오버레이만 닫음 (Firebase 값은 변경하지 않음)
+        btnCloseIntro.setOnClickListener {
+            introOverlay.visibility = View.GONE
+        }
 
         // 아이콘 클릭 이벤트 처리 (토글 기능)
         val itemClickListener = object : AlarmAdapter.OnItemClickListener {
@@ -616,4 +640,22 @@ class MainActivity : ComponentActivity() {
             }
         })
     }
+
+    // Firebase의 settingsDatabase를 통해 'dont_show_intro' 값을 읽어오는 메서드 추가
+    private fun getDontShowIntroStateFromFirebase() {
+        settingsDatabase.child("dont_show_intro").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val dontShowIntro = snapshot.getValue(Boolean::class.java) ?: false
+                // UI 업데이트는 메인스레드에서 처리
+                runOnUiThread {
+                    val introOverlay = findViewById<FrameLayout>(R.id.introOverlay)
+                    introOverlay.visibility = if (dontShowIntro) View.GONE else View.VISIBLE
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("MainActivity", "Firebase에서 dont_show_intro 읽기 실패: ${error.message}")
+            }
+        })
+    }
+
 }
