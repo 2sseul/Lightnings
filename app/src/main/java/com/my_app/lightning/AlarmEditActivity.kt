@@ -1,5 +1,6 @@
 package com.my_app.lightning
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -190,6 +191,7 @@ class AlarmEditActivity : AppCompatActivity() {
             .updateChildren(updateMap)
             .addOnSuccessListener {
                 Toast.makeText(this, "알림 업데이트 완료 ⚡️", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, MainActivity::class.java))
             }
             .addOnFailureListener {
                 Toast.makeText(this, "알림 업데이트 실패 ⚡️", Toast.LENGTH_SHORT).show()
