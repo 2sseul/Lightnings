@@ -226,46 +226,45 @@
 
     <FrameLayout
         android:id="@+id/introOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-    >
+        android:layout_width="360dp"
+        android:layout_height="592dp"
+        android:layout_gravity="center"
+        android:background="@drawable/home_intro"
+        android:visibility="visible"> <!-- 초기에 visible, 조건에 따라 프로그래밍으로 제어 -->
 
-        <!-- 가운데 정렬된 콘텐츠 (이미지, 체크박스, 닫기버튼 등) -->
+        <!-- 우측 상단 X 버튼 -->
+        <ImageButton
+            android:id="@+id/btnCloseIntro"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="24dp"
+            android:layout_marginRight="24dp"
+            android:background="@drawable/icon_close" />
+
+        <!-- 좌측 하단 '다시보지 않기' 버튼 -->
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:padding="16dp"
-        >
-            <!-- 보여줄 이미지 -->
+            android:id="@+id/btnDontShowAgain"
+            android:layout_width="108dp"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginLeft="24dp"
+            android:layout_marginBottom="24dp">
+
             <ImageView
-                android:id="@+id/introImage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/home_intro"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/icon_check"
                 />
-
-            <!-- '다시는 안 보기' 체크박스 -->
-            <CheckBox
-                android:id="@+id/checkBoxDontShowAgain"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="다시는 안 보기"
-                android:layout_marginTop="10dp"
-                />
-
-            <!-- 닫기 버튼 (예: '확인' 등) -->
-            <Button
-                android:id="@+id/btnCloseIntro"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="닫기"
-                android:layout_marginTop="10dp"
-                />
+            <TextView
+                android:layout_width="84dp"
+                android:layout_height="24dp"
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:text="다시보지않기"
+                android:layout_gravity="center_vertical"
+                android:paddingLeft="5dp"/>
         </LinearLayout>
     </FrameLayout>
+
 </FrameLayout>
