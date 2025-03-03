@@ -229,8 +229,8 @@
         android:layout_width="360dp"
         android:layout_height="592dp"
         android:layout_gravity="center"
-        android:background="@drawable/home_intro"
-        android:visibility="visible"> <!-- 초기에 visible, 조건에 따라 프로그래밍으로 제어 -->
+        android:background="@drawable/radius_home_intro"
+        android:visibility="visible">
 
         <!-- 우측 상단 X 버튼 -->
         <ImageButton

@@ -82,7 +82,7 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.icon_ok_thunder)
+            .setSmallIcon(R.drawable.icon_light_notification_ic)
             .setColor(ContextCompat.getColor(context, R.color.white))
             .setContentTitle(contentTitle)
             .setAutoCancel(true)
