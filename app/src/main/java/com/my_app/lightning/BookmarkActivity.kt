@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -32,10 +33,12 @@ class BookmarkActivity : ComponentActivity() {
 
         val bookmarkIcon = findViewById<ImageView>(R.id.bookmark)
         val settingsIcon = findViewById<ImageView>(R.id.settings)
+        val homeIcon = findViewById<ImageView>(R.id.home)
 
         // 현재 화면이 '북마크' 페이지이므로 북마크 아이콘은 클릭 상태로
         bookmarkIcon.setImageResource(R.drawable.icon_light_bookmark_click)
-        // 설정 아이콘은 기본 상태로
+        // 설정 아이콘과 홈 아이콘은 기본 상태로
+        homeIcon.setImageResource(R.drawable.icon_light_home)
         settingsIcon.setImageResource(R.drawable.icon_light_settings)
 
         uniqueUserId = UniqueIDManager.getInstance(applicationContext).getUniqueUserId()
