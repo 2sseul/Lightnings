@@ -39,7 +39,7 @@
                 android:layout_height="24dp"
                 android:layout_weight="1"
                 android:layout_gravity="center"
-                android:src="@drawable/icon_home" />
+                android:src="@drawable/icon_light_home" />
 
             <ImageView
                 android:id="@+id/settings"
